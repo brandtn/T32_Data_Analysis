@@ -7,6 +7,16 @@ student_data <- gs_read(ss = gs_title("T_32"))
 
 glimpse(student_data)
 
+
+ggplot(student_data, aes(First_Term)) +
+  geom_bar()
+
+ggplot(student_data, aes(School)) +
+  geom_bar()
+
+ggplot(student_data, aes(Years)) +
+  geom_bar()
+
 #function to convert date
 #take in x which is a 4 digit number
 convertdate {
