@@ -1,6 +1,8 @@
 #Load libraries
 library("tidyverse")
 library("googlesheets")
+#GoogleSheets Info
+#https://cran.r-project.org/web/packages/googlesheets/vignettes/basic-usage.html
 
 #Function to convert university date code into decipherable terms
 convertdate <- function(x) {
@@ -25,11 +27,23 @@ convertdate <- function(x) {
   return(as.numeric(date))
 }
 
+pi.list <- select(gs_read(ss = gs_title("PI_Contact_Info_Tracker")), PI)
+t32 <- gs_read(ss = gs_title(paste("T_32_PhD_Info_",pi.list[1, 1], sep = "")))
+
+for(x in 2:length(pi.list$PI)) {
+   t32 <- bind_rows(t32, gs_read(ss = gs_title(paste("T_32_PhD_Info_",pi.list[x, 1], sep = ""))))
+}
+
+t32.new <- left_
+
+
 #read in data from Google Sheet
 #First Time requires the input of an authroazation key
 student_data <- gs_read(ss = gs_title("T_32"))
 
-#Remove Unnessary Colum
+
+
+#Remove Unnessary Column
 student_data <- student_data %>% select(-Student_Name_1)
 
 #Convert to Usable Dates
