@@ -37,8 +37,6 @@ convertdate_semester <- function(x) {
   return(as.character(date))
 }
 
-
-
 #Reads in list of PIs
 pi.list <- select(gs_read(ss = gs_title("PI_Contact_Info_Tracker")), PI)
 #Adds in first
@@ -48,17 +46,13 @@ for(x in 2:length(pi.list$PI)) {
    t32 <- bind_rows(t32, gs_read(ss = gs_title(paste("T_32_PhD_Info_",pi.list[x, 1], sep = ""))))
 }
 
-
 # Not working as intended.
 #Possile Stratergy. Compile data. Use Table names to delete all but
 t32.new <- left_join(gs_read(ss = gs_title("T_32")), t32)
 
-
 #read in data from Google Sheet
 #First Time requires the input of an authroazation key
 student_data <- gs_read(ss = gs_title("T_32"))
-
-
 
 #Remove Unnessary Column
 student_data <- student_data %>% select(-Student_Name_1)
