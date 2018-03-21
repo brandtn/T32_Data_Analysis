@@ -1,6 +1,7 @@
 #Load libraries
 library("tidyverse")
 library("googlesheets")
+library("ggpubr")
 #GoogleSheets Info
 #https://cran.r-project.org/web/packages/googlesheets/vignettes/basic-usage.html
 
@@ -48,7 +49,7 @@ for(x in 2:length(pi.list$PI)) {
 
 # Not working as intended.
 #Possile Stratergy. Compile data. Use Table names to delete all but
-t32.new <- left_join(gs_read(ss = gs_title("T_32")), t32)
+#t32.new <- left_join(gs_read(ss = gs_title("T_32")), t32)
 
 #read in data from Google Sheet
 #First Time requires the input of an authroazation key
@@ -65,6 +66,10 @@ student_data$GABIOLPHD <- sapply(student_data$GABIOLPHD, convertdate_year)
 
 #Corrects for later analysis
 student_data$Citz_Stat_Cd <- as.factor(student_data$Citz_Stat_Cd)
+#student_data$EV <- as.factor(student_data$EV)
+#student_data$EQ <- as.factor(student_data$EQ)
+#student_data$EVP <- as.factor(student_data$EVP)
+#student_data$EQP <- as.factor(student_data$EQP)
 
 
 glimpse(student_data)
@@ -167,24 +172,80 @@ student_data %>%
   theme_void() +
   labs( fill = "Undergraduate Degree")
 
-  #GRE scores - How to look at it? Have 4 columns of data. Verbal and Quantative, both old and new syle of scoring
-
+#GRE scores - How to look at it? 
+#Have 4 columns of data. Verbal and Quantative, both old and new syle of scoring
 student_data %>%
   filter(First_Term >= filter.year) %>%
-  ggplot(aes(x = )) +
+  ggplot(aes(x = EV)) +
   geom_bar() +
   ylab("# of Students") +
-  xlab("GRE Scorces") +
-  scale_y_continuous(limits = c(0,100), expand=c(0,0)) +
+  xlab("Verbal GRE Scorces (New Scale)") +
+  scale_y_continuous(limits = c(0,25), expand=c(0,0)) +
   theme_classic() 
 
 student_data %>%
   filter(First_Term >= filter.year) %>%
-  ggplot(aes(x = "", fill = )) +
+  ggplot(aes(x = EQ)) +
+  geom_bar() +
+  ylab("# of Students") +
+  xlab("Quantative GRE Scorces (New Scale)") +
+  scale_y_continuous(limits = c(0,25), expand=c(0,0)) +
+  theme_classic() 
+
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  ggplot(aes(x = EVP)) +
+  geom_bar() +
+  ylab("# of Students") +
+  xlab("Verbal GRE Scorces Percentage") +
+  scale_y_continuous(limits = c(0,25), expand=c(0,0)) +
+  theme_classic() 
+
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  ggplot(aes(x = EQP)) +
+  geom_bar() +
+  ylab("# of Students") +
+  xlab("Quantative GRE Scorces Percentage") +
+  scale_y_continuous(limits = c(0,25), expand=c(0,0)) +
+  theme_classic() 
+
+
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  ggplot(aes(x = "", fill = EV)) +
   geom_bar(width = 1 ) +
   coord_polar(theta = "y", start=0) +
   theme_void() +
-  labs( fill = "GRE Scorces")
+  labs( fill = "Verbal GRE Scorces (New Scale)")
+
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  ggplot(aes(x = "", fill = EQ)) +
+  geom_bar(width = 1 ) +
+  coord_polar(theta = "y", start=0) +
+  theme_void() +
+  labs( fill = "Quantative GRE Scorces (New Scale)")
+
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  ggplot(aes(x = "", fill = EVP)) +
+  geom_bar(width = 1 ) +
+  coord_polar(theta = "y", start=0) +
+  theme_void() +
+  labs( fill = "Verbal GRE Scorces Percentage")
+
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  ggplot(aes(x = "", fill = EQP)) +
+  geom_bar(width = 1 ) +
+  coord_polar(theta = "y", start=0) +
+  theme_void() +
+  labs( fill = "Quantative GRE Scorces Percentage")
+
+
+
+
 
 #PhD experience (histograms or boxplot with points overlayed)
   #Time to degree
@@ -203,8 +264,11 @@ student_data %>%
   filter(!is.na(GABIOLPHD)) %>%
   ggplot(aes(x = "", y= Years )) +
   geom_boxplot() +
+  geom_dotplot(binaxis = 'y', stackdir = 'center', position = position_dodge()) +
   ylab("Years to PhD") +
-  theme_bw() 
+  xlab("") +
+  theme_bw() +
+  theme(axis.ticks.x = element_blank())
 
   #Number of semesters of teaching
 student_data %>%
@@ -256,10 +320,15 @@ ggplot(student_data, aes(????)) +
 #PI commitment - Need to figure out how to calculate
   #Number of students per PI (histogram)
 student_data %>%
+  select(Student_Name, PI) %>%
+  spread(key = PI, value = Student_Name)
+
+student_data %>%
   filter(First_Term >= filter.year) %>%
   filter(!is.na(PI)) %>%
   ggplot(aes(x = PI )) +
-  geom_histogram(stat = "count", binwidth = 1) +
+  geom_bar()
+  #geom_histogram(stat = "count", binwidth = 1) +
   ylab("# of Students") +
   xlab("Students/PI") +
   scale_y_continuous(limits = c(0,30), expand=c(0,0)) +
