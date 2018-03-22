@@ -53,7 +53,7 @@ for(x in 2:length(pi.list$PI)) {
 
 #read in data from Google Sheet
 #First Time requires the input of an authroazation key
-student_data <- gs_read(ss = gs_title("T_32"))
+student_data <- gs_read(ss = gs_title("T_32_Updated_03222018"))
 
 #Remove Unnessary Column
 student_data <- student_data %>% select(-Student_Name_1)
@@ -66,10 +66,7 @@ student_data$GABIOLPHD <- sapply(student_data$GABIOLPHD, convertdate_year)
 
 #Corrects for later analysis
 student_data$Citz_Stat_Cd <- as.factor(student_data$Citz_Stat_Cd)
-#student_data$EV <- as.factor(student_data$EV)
-#student_data$EQ <- as.factor(student_data$EQ)
-#student_data$EVP <- as.factor(student_data$EVP)
-#student_data$EQP <- as.factor(student_data$EQP)
+
 
 
 glimpse(student_data)
@@ -320,26 +317,44 @@ ggplot(student_data, aes(????)) +
 #PI commitment - Need to figure out how to calculate
   #Number of students per PI (histogram)
 
-#Not going to work 
-#!!!!!TRY to just do Something with intances of value in PI should be a graph type that works
-student_data %>%
-  select(Student_Name, PI) %>%
-  spread(key = PI, value = Student_Name)
-
-student_data %>%
+pi_data <- student_data %>%
   filter(First_Term >= filter.year) %>%
   filter(!is.na(PI)) %>%
-  ggplot(aes(x = PI )) +
-  geom_bar()
-  #geom_histogram(stat = "count", binwidth = 1) +
+  select(PI)
+
+copi_data <- student_data %>%
+  filter(First_Term >= filter.year) %>%
+  filter(!is.na(PI)) %>%
+  filter(!is.na(CO_PI)) %>%
+  select(PI, CO_PI)
+num.comentored <- count(copi_data)
+num.pi_comentoring <- length(unique(c(copi_data$CO_PI, copi_data$PI)))
+
+copi_data <- copi_data %>% select(CO_PI)
+names(copi_data) <- c("PI")
+
+pi_data <- bind_rows(pi_data, copi_data)
+                    
+pi_data <- mutate(arrange(distinct(pi_data), PI), Number_Students = tabulate(as.factor(pi_data$PI)))
+
+
+pi_data %>%
+  ggplot(aes(x = Number_Students )) +
+  geom_bar() +
+  annotate("text", x = 7, y = 9, label = paste("Number of Students Co-Mentored =",num.comentored)) +
+  annotate("text", x = 7, y = 8, label = paste("Number of PI's Co-Mentoring =",num.pi_comentoring)) +
   ylab("# of Students") +
   xlab("Students/PI") +
-  scale_y_continuous(limits = c(0,30), expand=c(0,0)) +
+  scale_y_continuous(limits = c(0,10), expand=c(0,0)) +
   theme_bw() 
 
   #Number of student co-mentored (class within the above histogram or no plot)
   #Number of PIs in co-mentoring relationships
+
+
+
   #Distribution of committee membership (how many committees is each PI on) (histogram) - Student Comittees, need to figure out how to calculate into a graph
+
 ggplot(student_data, aes(????)) +
   geom_histogram()
 
