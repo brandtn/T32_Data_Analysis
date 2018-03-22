@@ -319,6 +319,9 @@ ggplot(student_data, aes(????)) +
 
 #PI commitment - Need to figure out how to calculate
   #Number of students per PI (histogram)
+
+#Not going to work 
+#!!!!!TRY to just do Something with intances of value in PI should be a graph type that works
 student_data %>%
   select(Student_Name, PI) %>%
   spread(key = PI, value = Student_Name)

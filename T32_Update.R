@@ -47,6 +47,8 @@ for(x in 2:length(pi.list$PI)) {
   t32 <- bind_rows(t32, gs_read(ss = gs_title(paste("T_32_PhD_Info_",pi.list[x, 1], sep = ""))))
 }
 
+gs_new("T32_Updated", ws_title = "Data", input = t32)
+
 # Not working as intended.
 #Possile Stratergy. Compile data. Use Table names to delete all but
 #t32.new <- left_join(gs_read(ss = gs_title("T_32")), t32)
