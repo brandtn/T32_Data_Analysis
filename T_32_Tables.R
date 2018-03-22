@@ -316,27 +316,28 @@ ggplot(student_data, aes(????)) +
 
 #PI commitment - Need to figure out how to calculate
   #Number of students per PI (histogram)
+ #Number of student co-mentored (class within the above histogram or no plot)
+ #Number of PIs in co-mentoring relationships
 
 pi_data <- student_data %>%
   filter(First_Term >= filter.year) %>%
   filter(!is.na(PI)) %>%
-  select(PI)
+  select(PI, CO_PI) %>%
+  gather(pi_data, key = Student_Name) %>%
+  select(pi_data) %>%
+  filter(!is.na(pi_data))
+names(pi_data) <- c("PI")
 
 copi_data <- student_data %>%
   filter(First_Term >= filter.year) %>%
   filter(!is.na(PI)) %>%
-  filter(!is.na(CO_PI)) %>%
-  select(PI, CO_PI)
+  select(PI, CO_PI) %>% 
+  filter(!is.na(CO_PI))
+
 num.comentored <- count(copi_data)
 num.pi_comentoring <- length(unique(c(copi_data$CO_PI, copi_data$PI)))
 
-copi_data <- copi_data %>% select(CO_PI)
-names(copi_data) <- c("PI")
-
-pi_data <- bind_rows(pi_data, copi_data)
-                    
 pi_data <- mutate(arrange(distinct(pi_data), PI), Number_Students = tabulate(as.factor(pi_data$PI)))
-
 
 pi_data %>%
   ggplot(aes(x = Number_Students )) +
@@ -348,16 +349,29 @@ pi_data %>%
   scale_y_continuous(limits = c(0,10), expand=c(0,0)) +
   theme_bw() 
 
-  #Number of student co-mentored (class within the above histogram or no plot)
-  #Number of PIs in co-mentoring relationships
+#Distribution of committee membership (how many committees is each PI on) (histogram) - Student Comittees, need to figure out how to calculate into a graph
+
+#Need tp cLean Up Data
+
+commit_data <- student_data %>%
+  filter(First_Term >= filter.year) %>%
+  filter(!is.na(PI)) %>%
+  select(Student_Name, PI, CO_PI, PhD_commitee_member_1, PhD_commitee_member_2, PhD_commitee_member_3) %>%
+  gather(commit_data, key = Student_Name) %>%
+  filter(!is.na(commit_data)) %>%
+  select(commit_data)
+names(commit_data) <- c("PI")
+
+commit_data <- mutate(arrange(distinct(commit_data), PI), Number_PIs = tabulate(as.factor(commit_data$PI)))
 
 
-
-  #Distribution of committee membership (how many committees is each PI on) (histogram) - Student Comittees, need to figure out how to calculate into a graph
-
-ggplot(student_data, aes(????)) +
-  geom_histogram()
-
+commit_data %>%
+  ggplot(aes(x = Number_PIs )) +
+  geom_bar() +
+  ylab("# of PIs") +
+  xlab("# of Committee Memberships") +
+  scale_y_continuous(limits = c(0,10), expand=c(0,0)) +
+  theme_bw() 
 
 
 
