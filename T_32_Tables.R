@@ -288,6 +288,39 @@ student_data %>%
 
 
   #Number of published papers - Need to Calculate Data
+paper_data <- student_data %>%
+  filter(First_Term >= filter.year) %>%
+  filter(!is.na(GABIOLPHD)) %>%
+  select(Student_Name, Paper_1:Paper_16) %>%
+  gather(Paper_1:Paper_16, key = 'Papers', value = 'Paper_Citation') %>%
+  filter(!is.na(Paper_Citation)) %>%
+  mutate(Last_Name = gsub(",.*", "", Student_Name), First_Author = gsub(" .*", "", Paper_Citation) )
+ 
+
+first_author <-  paper_data %>%
+  filter(Last_Name == First_Author) %>%
+    select(Student_Name)
+    
+first_author <- mutate(arrange(distinct(first_author), Student_Name), First_Author = tabulate(as.factor(first_author$Student_Name)))
+  
+co_author <-  paper_data %>%
+  filter(!(Last_Name == First_Author)) %>%
+    select(Student_Name) 
+    
+co_author <- mutate(arrange(distinct(co_author), Student_Name), Co_Author = tabulate(as.factor(co_author$Student_Name)))
+
+total_author <-  paper_data %>%
+  select(Student_Name) 
+
+total_author <- mutate(arrange(distinct(total_author), Student_Name), Number_Papers = tabulate(as.factor(total_author$Student_Name)))
+
+author_data <- left_join(total_author, first_author, by = "Student_Name")
+author_data <- left_join(author_data, co_author, by = "Student_Name")
+names(author_data) <- c("Student_Name", "Total_Papers", "First_Author", "Co_Author")
+author_data$First_Author <- replace_na(author_data$First_Author, 0)
+author_data$Co_Author <- replace_na(author_data$Co_Author, 0)
+
+
     #1st author
     #co-author
 
@@ -323,9 +356,9 @@ pi_data <- student_data %>%
   filter(First_Term >= filter.year) %>%
   filter(!is.na(PI)) %>%
   select(PI, CO_PI) %>%
-  gather(pi_data, key = Student_Name) %>%
-  select(pi_data) %>%
-  filter(!is.na(pi_data))
+  gather(key = 'Position') %>%
+  select(value) %>%
+  filter(!is.na(value))
 names(pi_data) <- c("PI")
 
 copi_data <- student_data %>%
@@ -351,15 +384,15 @@ pi_data %>%
 
 #Distribution of committee membership (how many committees is each PI on) (histogram) - Student Comittees, need to figure out how to calculate into a graph
 
-#Need tp cLean Up Data
+#Need tp cLean Up Data and check filtering
 
 commit_data <- student_data %>%
   filter(First_Term >= filter.year) %>%
   filter(!is.na(PI)) %>%
   select(Student_Name, PI, CO_PI, PhD_commitee_member_1, PhD_commitee_member_2, PhD_commitee_member_3) %>%
-  gather(commit_data, key = Student_Name) %>%
-  filter(!is.na(commit_data)) %>%
-  select(commit_data)
+  gather(key = 'Position') %>%
+  filter(!is.na(value)) %>%
+  select(value)
 names(commit_data) <- c("PI")
 
 commit_data <- mutate(arrange(distinct(commit_data), PI), Number_PIs = tabulate(as.factor(commit_data$PI)))
