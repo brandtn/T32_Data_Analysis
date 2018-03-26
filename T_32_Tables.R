@@ -287,7 +287,8 @@ student_data %>%
   theme_bw() 
 
 
-  #Number of published papers - Need to Calculate Data
+  #Number of published papers - 
+#Calculate Data
 paper_data <- student_data %>%
   filter(First_Term >= filter.year) %>%
   filter(!is.na(GABIOLPHD)) %>%
@@ -321,9 +322,35 @@ author_data$First_Author <- replace_na(author_data$First_Author, 0)
 author_data$Co_Author <- replace_na(author_data$Co_Author, 0)
 
 
-    #1st author
-    #co-author
+#1st author
+author_data %>%
+  ggplot(aes(x = First_Author )) +
+  geom_bar() +
+  ylab("# of Students") +
+  xlab("# of First Author Papers") +
+  scale_y_continuous(limits = c(0,20), expand=c(0,0)) +
+  theme_bw() 
 
+#author_data %>%
+#  ggplot(aes(x = "", y= First_Author )) +
+ # geom_boxplot() +
+#  ylab("# of First Author Papers") +
+#  theme_bw()
+
+#co-author
+author_data %>%
+  ggplot(aes(x = Total_Papers )) +
+  geom_bar() +
+  ylab("# of Students") +
+  xlab("# of Co-Author Papers") +
+  scale_y_continuous(limits = c(0,20), expand=c(0,0)) +
+  theme_bw() 
+
+#author_data %>%
+#  ggplot(aes(x = "", y= Co_Author )) +
+#  geom_boxplot() +
+#  ylab("#ofPapers") +
+#  theme_bw()
 
   #Subsequent position (pie or barplot) _ Need to normalize Data
 ggplot(student_data, aes(????)) +
@@ -377,7 +404,7 @@ pi_data %>%
   geom_bar() +
   annotate("text", x = 7, y = 9, label = paste("Number of Students Co-Mentored =",num.comentored)) +
   annotate("text", x = 7, y = 8, label = paste("Number of PI's Co-Mentoring =",num.pi_comentoring)) +
-  ylab("# of Students") +
+  ylab("# of PIs") +
   xlab("Students/PI") +
   scale_y_continuous(limits = c(0,10), expand=c(0,0)) +
   theme_bw() 
