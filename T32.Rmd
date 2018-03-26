@@ -1,15 +1,26 @@
-#Load libraries
+---
+title: "T32"
+author: "Nathan Brandt"
+date: "3/26/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Load Libraries
+```{r}
 library("tidyverse")
-library("googlesheets")
+library("googlesheets") #GoogleSheets Info https://cran.r-project.org/web/packages/googlesheets/vignettes/basic-usage.html
 library("ggpubr")
-#GoogleSheets Info
-#https://cran.r-project.org/web/packages/googlesheets/vignettes/basic-usage.html
+```
 
-
-
+#Functions
+```{r , echo=FALSE}
 #Function to convert university date code into decipherable terms, returns the year
 convertdate_year <- function(x) {
-  
+
   if (is.na(x)) {return(x)}
   #first charater is either 0 or 1, 0 = 19, 1 = 20
   #Second two characters are the year, concate to first character transformation
@@ -37,21 +48,34 @@ convertdate_semester <- function(x) {
   #return date
   return(as.character(date))
 }
+```
 
-#Reads in list of PIs
-pi.list <- select(gs_read(ss = gs_title("PI_Contact_Info_Tracker")), PI)
-#Adds in first
-t32 <- gs_read(ss = gs_title(paste("T_32_PhD_Info_",pi.list[1, 1], sep = "")))
-#goes through the rest
-for(x in 2:length(pi.list$PI)) {
-  t32 <- bind_rows(t32, gs_read(ss = gs_title(paste("T_32_PhD_Info_",pi.list[x, 1], sep = ""))))
+#To Update Data
+```{r}
+
+#Do you want to update
+update <- 'No'
+
+if(update == 'Yes') {
+  #Reads in list of PIs
+  pi.list <- select(gs_read(ss = gs_title("PI_Contact_Info_Tracker")), PI)
+  #Adds in first
+  t32 <- gs_read(ss = gs_title(paste("T_32_PhD_Info_",pi.list[1, 1], sep = "")))
+  #goes through the rest
+  for(x in 2:length(pi.list$PI)) {
+    t32 <- bind_rows(t32, gs_read(ss = gs_title(paste("T_32_PhD_Info_",pi.list[x, 1], sep = ""))))
+  }
+
+  #creates a new sheet
+  gs_new("T32_Update", ws_title = "Data", input = t32, trim = TRUE)
+
+  #Edits old sheet to update
+  #gs_edit_cells("T32_Update", ws = "Data", input = t32)
 }
+```
 
-
-gs_new("T32_Update", ws_title = "Data", input = t32, trim = TRUE)
-#gs_edit_cells("T32_Update", ws = "Data", input = t32)
-
-
+#Aquire Data
+``` {r}
 #read in and check data from Google Sheet
 #First Time requires the input of an authroazation key
 current.sheet <- 'T_32_Updated_03222018'
@@ -63,12 +87,21 @@ student_data$Most_Recent <- sapply(student_data$Most_Recent, convertdate_year)
 student_data$GABIOLMS <- sapply(student_data$GABIOLMS, convertdate_year)
 student_data$GABIOLPHD <- sapply(student_data$GABIOLPHD, convertdate_year)
 
-#Corrects for later analysis
+#Correct data types for proper analysis
 student_data$Citz_Stat_Cd <- as.factor(student_data$Citz_Stat_Cd)
-#student_data$EV <- as.factor(student_data$EV)
-#student_data$EQ <- as.factor(student_data$EQ)
-#student_data$EVP <- as.factor(student_data$EVP)
-#student_data$EQP <- as.factor(student_data$EQP)
-
 
 glimpse(student_data)
+
+#Read in Faculty List for analysis
+faculty <- gs_read(ss = gs_title("Faculty_List"))
+
+glimpse(faculty)
+```
+
+
+#Set global vairable
+```{r}
+#Filter by Year
+filter.year <- 2000
+```
+

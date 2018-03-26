@@ -67,7 +67,7 @@ student_data$GABIOLPHD <- sapply(student_data$GABIOLPHD, convertdate_year)
 #Corrects for later analysis
 student_data$Citz_Stat_Cd <- as.factor(student_data$Citz_Stat_Cd)
 
-
+faculty <- gs_read(ss = gs_title("T_32_Updated_03222018"))
 
 glimpse(student_data)
 
@@ -96,7 +96,7 @@ student_data %>%
   ylab("# of Students") +
   xlab("U.S. Citizenship Status") +
   scale_x_discrete(labels = c("Citizen","Permanent Resisdent", "Non-Resident Alien")) +
-  scale_y_continuous(limits = c(0,100), expand=c(0,0)) +
+  scale_y_continuous(expand=c(0,0)) +
   theme_classic() 
 
 student_data %>%
@@ -115,7 +115,7 @@ student_data %>%
   geom_bar() +
   ylab("# of Students") +
   xlab("Coutry of Citizenship") +
-  scale_y_continuous(limits = c(0,100), expand=c(0,0)) +
+  scale_y_continuous(expand=c(0,0)) +
   theme_classic() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
@@ -134,7 +134,7 @@ student_data %>%
   geom_bar() +
   ylab("# of Students") +
   xlab("Ethnicity") +
-  scale_y_continuous(limits = c(0,100), expand=c(0,0)) +
+  scale_y_continuous(expand=c(0,0)) +
   theme_classic() 
 
 student_data %>%
@@ -158,7 +158,7 @@ student_data %>%
   geom_bar() +
   ylab("# of Students") +
   xlab("Undergraduate Degree") +
-  scale_y_continuous(limits = c(0,100), expand=c(0,0)) +
+  scale_y_continuous(expand=c(0,0)) +
   theme_classic() 
 
 student_data %>%
@@ -253,7 +253,7 @@ student_data %>%
   geom_histogram(binwidth = 0.5) +
   ylab("# of Students") +
   xlab("Years to PhD") +
-  scale_y_continuous(limits = c(0,30), expand=c(0,0)) +
+  scale_y_continuous(expand=c(0,0)) +
   theme_bw() 
 
 student_data %>%
@@ -275,7 +275,7 @@ student_data %>%
   geom_histogram(binwidth = 1) +
   ylab("# of Students") +
   xlab("Semesters of Teaching") +
-  scale_y_continuous(limits = c(0,30), expand=c(0,0)) +
+  scale_y_continuous(expand=c(0,0)) +
   theme_bw() 
 
 student_data %>%
