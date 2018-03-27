@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 #Load Libraries
-```{r}
+```{r, echo=FALSE}
 library("tidyverse")
 library("googlesheets") #GoogleSheets Info https://cran.r-project.org/web/packages/googlesheets/vignettes/basic-usage.html
 library("ggpubr")
@@ -75,10 +75,10 @@ if(update == 'Yes') {
 ```
 
 #Aquire Data
-``` {r}
+```{r}
 #read in and check data from Google Sheet
 #First Time requires the input of an authroazation key
-current.sheet <- 'T_32_Updated_03222018'
+current.sheet <- 'T_32_Updated_03262018'
 student_data <- gs_read(ss = gs_title(current.sheet))
 
 #Convert to Usable Dates - Years only for now
@@ -105,3 +105,346 @@ glimpse(faculty)
 filter.year <- 2000
 ```
 
+#Transform Data - For all analysis
+```{r}
+#For Papers
+paper_data <- student_data %>%
+  filter(First_Term >= filter.year) %>%
+  filter(!is.na(GABIOLPHD)) %>%
+  select(Student_Name, Paper_1:Paper_16) %>%
+  gather(Paper_1:Paper_16, key = 'Papers', value = 'Paper_Citation') %>%
+  filter(!is.na(Paper_Citation)) %>%
+  mutate(Last_Name = gsub(",.*", "", Student_Name), First_Author = gsub(" .*", "", Paper_Citation) )
+ 
+first_author <-  paper_data %>%
+  filter(Last_Name == First_Author) %>%
+    select(Student_Name)
+first_author <- mutate(arrange(distinct(first_author), Student_Name), First_Author = tabulate(as.factor(first_author$Student_Name)))
+  
+co_author <-  paper_data %>%
+  filter(!(Last_Name == First_Author)) %>%
+    select(Student_Name) 
+co_author <- mutate(arrange(distinct(co_author), Student_Name), Co_Author = tabulate(as.factor(co_author$Student_Name)))
+
+total_author <-  paper_data %>%
+  select(Student_Name) 
+total_author <- mutate(arrange(distinct(total_author), Student_Name), Number_Papers = tabulate(as.factor(total_author$Student_Name)))
+
+author_data <- left_join(total_author, first_author, by = "Student_Name")
+author_data <- left_join(author_data, co_author, by = "Student_Name")
+names(author_data) <- c("Student_Name", "Total_Papers", "First_Author", "Co_Author")
+author_data$First_Author <- replace_na(author_data$First_Author, 0)
+author_data$Co_Author <- replace_na(author_data$Co_Author, 0)
+
+#For PI commitments
+pi_data <- student_data %>%
+  filter(First_Term >= filter.year) %>%
+  filter(!is.na(PI)) %>%
+  select(PI, CO_PI) %>%
+  gather(key = 'Position') %>%
+  select(value) %>%
+  filter(!is.na(value))
+names(pi_data) <- c("PI")
+
+copi_data <- student_data %>%
+  filter(First_Term >= filter.year) %>%
+  filter(!is.na(PI)) %>%
+  select(PI, CO_PI) %>% 
+  filter(!is.na(CO_PI))
+
+num.comentored <- count(copi_data)
+num.pi_comentoring <- length(unique(c(copi_data$CO_PI, copi_data$PI)))
+
+pi_data <- mutate(arrange(distinct(pi_data), PI), Number_Students = tabulate(as.factor(pi_data$PI)))
+
+commit_data <- mutate(faculty, Number_Committees = str_count(commit_data, faculty$Last_Name))
+```
+
+#Graphs
+```{r}
+#How many students per year? (dot and line plot)
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  ggplot(aes(x = First_Term)) +
+  geom_point(stat = 'count') +
+  geom_line(aes(group = 1), stat = 'count') +
+  ylab("# of Students") +
+  xlab("Year") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+
+#Demographics (pie or barcharts)
+  #Citizenship status
+  #Citz Stat Cd	US Citizenship Status (1 = Citizen, 3 = Perm Res, 4 = Non-Resident Alien)
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  ggplot(aes(x = Citz_Stat_Cd)) +
+  geom_bar() +
+  ylab("# of Students") +
+  xlab("U.S. Citizenship Status") +
+  scale_x_discrete(labels = c("Citizen","Permanent Resisdent", "Non-Resident Alien")) +
+  scale_y_continuous(expand=c(0,0)) +
+  theme_classic() 
+
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  ggplot(aes(x = "", fill = Citz_Stat_Cd)) +
+  geom_bar(width = 1 ) +
+  coord_polar(theta = "y", start=0) +
+  theme_void() +
+  labs( fill = "U.S. Citizenship Status") +
+  scale_fill_discrete(labels = c("Citizen","Permanent Resisdent", "Non-Resident Alien"))
+
+  #Country of citizenship
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  ggplot(aes(x = Cit)) +
+  geom_bar() +
+  ylab("# of Students") +
+  xlab("Coutry of Citizenship") +
+  scale_y_continuous(expand=c(0,0)) +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  ggplot(aes(x = "", fill = Cit)) +
+  geom_bar(width = 1 ) +
+  coord_polar(theta = "y", start=0) +
+  theme_void() +
+  labs( fill = "Coutry of Citizenship")
+
+  #Ethnicity
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  ggplot(aes(x = Nyu_Ipeds_Eth_Ld)) +
+  geom_bar() +
+  ylab("# of Students") +
+  xlab("Ethnicity") +
+  scale_y_continuous(expand=c(0,0)) +
+  theme_classic() 
+
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  ggplot(aes(x = "", fill = Nyu_Ipeds_Eth_Ld)) +
+  geom_bar(width = 1 ) +
+  coord_polar(theta = "y", start=0) +
+  theme_void() +
+  labs( fill = "Ethnicity")
+
+  #Qualifications upon entry to program - Unsure what this is? BS vs BA???
+# BA = Bachelor of the Arts
+# BS = Bachelor of Science
+# BBA = Bachelor of Business Administration
+# BSA = Bachelor or Science and Arts
+# BENG = Bachelor of Engineering
+# BZ = Unkonwn
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  ggplot(aes(x = Deg)) +
+  geom_bar() +
+  ylab("# of Students") +
+  xlab("Undergraduate Degree") +
+  scale_y_continuous(expand=c(0,0)) +
+  theme_classic() 
+
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  ggplot(aes(x = "", fill = Deg)) +
+  geom_bar(width = 1 ) +
+  coord_polar(theta = "y", start=0) +
+  theme_void() +
+  labs( fill = "Undergraduate Degree")
+
+#GRE scores - How to look at it? 
+#Have 4 columns of data. Verbal and Quantative, both old and new syle of scoring
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  ggplot(aes(x = EV)) +
+  geom_bar() +
+  ylab("# of Students") +
+  xlab("Verbal GRE Scorces (New Scale)") +
+  scale_y_continuous(limits = c(0,25), expand=c(0,0)) +
+  theme_classic() 
+
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  ggplot(aes(x = EQ)) +
+  geom_bar() +
+  ylab("# of Students") +
+  xlab("Quantative GRE Scorces (New Scale)") +
+  scale_y_continuous(limits = c(0,25), expand=c(0,0)) +
+  theme_classic() 
+
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  ggplot(aes(x = EVP)) +
+  geom_bar() +
+  ylab("# of Students") +
+  xlab("Verbal GRE Scorces Percentage") +
+  scale_y_continuous(limits = c(0,25), expand=c(0,0)) +
+  theme_classic() 
+
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  ggplot(aes(x = EQP)) +
+  geom_bar() +
+  ylab("# of Students") +
+  xlab("Quantative GRE Scorces Percentage") +
+  scale_y_continuous(limits = c(0,25), expand=c(0,0)) +
+  theme_classic() 
+
+
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  ggplot(aes(x = "", fill = EV)) +
+  geom_bar(width = 1 ) +
+  coord_polar(theta = "y", start=0) +
+  theme_void() +
+  labs( fill = "Verbal GRE Scorces (New Scale)")
+
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  ggplot(aes(x = "", fill = EQ)) +
+  geom_bar(width = 1 ) +
+  coord_polar(theta = "y", start=0) +
+  theme_void() +
+  labs( fill = "Quantative GRE Scorces (New Scale)")
+
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  ggplot(aes(x = "", fill = EVP)) +
+  geom_bar(width = 1 ) +
+  coord_polar(theta = "y", start=0) +
+  theme_void() +
+  labs( fill = "Verbal GRE Scorces Percentage")
+
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  ggplot(aes(x = "", fill = EQP)) +
+  geom_bar(width = 1 ) +
+  coord_polar(theta = "y", start=0) +
+  theme_void() +
+  labs( fill = "Quantative GRE Scorces Percentage")
+
+
+#PhD experience (histograms or boxplot with points overlayed)
+  #Time to degree
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  filter(!is.na(GABIOLPHD)) %>%
+  ggplot(aes(x = Years )) +
+  geom_histogram(binwidth = 0.5) +
+  ylab("# of Students") +
+  xlab("Years to PhD") +
+  scale_y_continuous(expand=c(0,0)) +
+  theme_bw() 
+
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  filter(!is.na(GABIOLPHD)) %>%
+  ggplot(aes(x = "", y= Years )) +
+  geom_boxplot() +
+  geom_dotplot(binaxis = 'y', stackdir = 'center', position = position_dodge()) +
+  ylab("Years to PhD") +
+  xlab("") +
+  theme_bw() +
+  theme(axis.ticks.x = element_blank())
+
+  #Number of semesters of teaching
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  filter(!is.na(GABIOLPHD)) %>%
+  ggplot(aes(x = Semesters_of_teaching )) +
+  geom_histogram(binwidth = 1) +
+  ylab("# of Students") +
+  xlab("Semesters of Teaching") +
+  scale_y_continuous(expand=c(0,0)) +
+  theme_bw() 
+
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  filter(!is.na(GABIOLPHD)) %>%
+  ggplot(aes(x = "", y= Semesters_of_teaching )) +
+  geom_boxplot() +
+  ylab("Semesters of Teaching") +
+  theme_bw() 
+
+  #Number of published papers - 
+#1st author
+author_data %>%
+  ggplot(aes(x = First_Author )) +
+  geom_bar() +
+  ylab("# of Students") +
+  xlab("# of First Author Papers") +
+  scale_y_continuous(limits = c(0,20), expand=c(0,0)) +
+  theme_bw() 
+
+#co-author
+author_data %>%
+  ggplot(aes(x = Total_Papers )) +
+  geom_bar() +
+  ylab("# of Students") +
+  xlab("# of Co-Author Papers") +
+  scale_y_continuous(limits = c(0,20), expand=c(0,0)) +
+  theme_bw() 
+
+#Subsequent position (pie or barplot)
+#Postdoc vs not postdoc
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  filter(!is.na(GABIOLPHD)) %>%
+  ggplot(aes(x = (Employment_upon_graduation != 'Post-Doctoral Fellowship'))) +
+  geom_bar() +
+  xlab("Position upon gradutation") +
+  ylab("# of Students") +
+  scale_x_discrete(labels = c("Post-Doctoral Fellowship","Other", "Unkown")) +
+  scale_y_continuous(limits = c(0,50), expand=c(0,0)) +
+  theme_bw() 
+
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  filter(!is.na(GABIOLPHD)) %>%
+  ggplot(aes(x = "", fill = (Employment_upon_graduation != 'Post-Doctoral Fellowship'))) +
+  geom_bar(width = 1 ) +
+  coord_polar(theta = "y", start=0) +
+  theme_void() +
+  labs( fill = "Position upon gradutation") +
+  scale_fill_discrete(labels = c("Post-Doctoral Fellowship","Other", "Unkown"))
+
+#Postdoc institution
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  filter(!is.na(GABIOLPHD)) %>%
+  filter(Employment_upon_graduation == 'Post-Doctoral Fellowship') %>%
+  ggplot(aes(x = Postdoctoral_institution)) +
+  geom_bar() +
+  ylab("# of Students") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+#Summary of employment
+??????
+  
+#Distribution of committee membership (how many committees is each PI on) (histogram) - Student Comittees, need to figure out how to calculate into a graph
+
+#Need to check if we count committee's PI is on due to student
+pi_data %>%
+  ggplot(aes(x = Number_Students )) +
+  geom_bar() +
+  annotate("text", x = 7, y = 9, label = paste("Number of Students Co-Mentored =",num.comentored)) +
+  annotate("text", x = 7, y = 8, label = paste("Number of PI's Co-Mentoring =",num.pi_comentoring)) +
+  ylab("# of PIs") +
+  xlab("Students/PI") +
+  scale_y_continuous(limits = c(0,10), expand=c(0,0)) +
+  theme_bw() 
+
+commit_data %>%
+  ggplot(aes(x = Number_PIs )) +
+  geom_bar() +
+  ylab("# of PIs") +
+  xlab("# of Committee Memberships") +
+  scale_y_continuous(limits = c(0,10), expand=c(0,0)) +
+  theme_bw() 
+
+```

@@ -352,20 +352,51 @@ author_data %>%
 #  ylab("#ofPapers") +
 #  theme_bw()
 
-  #Subsequent position (pie or barplot) _ Need to normalize Data
-ggplot(student_data, aes(????)) +
-  geom_bar()
+#Subsequent position (pie or barplot)
+#Postdoc vs not postdoc
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  filter(!is.na(GABIOLPHD)) %>%
+  ggplot(aes(x = (Employment_upon_graduation != 'Post-Doctoral Fellowship'))) +
+  geom_bar() +
+  xlab("Position upon gradutation") +
+  ylab("# of Students") +
+  scale_x_discrete(labels = c("Post-Doctoral Fellowship","Other", "Unkown")) +
+  scale_y_continuous(limits = c(0,50), expand=c(0,0)) +
+  theme_bw() 
 
-+ coord_polar("y", start=0)
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  filter(!is.na(GABIOLPHD)) %>%
+  ggplot(aes(x = "", fill = (Employment_upon_graduation != 'Post-Doctoral Fellowship'))) +
+  geom_bar(width = 1 ) +
+  coord_polar(theta = "y", start=0) +
+  theme_void() +
+  labs( fill = "Position upon gradutation") +
+  scale_fill_discrete(labels = c("Post-Doctoral Fellowship","Other", "Unkown"))
 
-    #Postdoc vs not postdoc
-    #Postdoc institution
-    #Summary of employment
+#Postdoc institution
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  filter(!is.na(GABIOLPHD)) %>%
+  filter(Employment_upon_graduation == 'Post-Doctoral Fellowship') %>%
+  ggplot(aes(x = Postdoctoral_institution)) +
+  geom_bar() +
+  ylab("# of Students") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
-  #Test predictors of PhD experience
+#Summary of employment
+??????
+
+#Test predictors of PhD experience
     #GRE vs number of papers (scatter plot)
-ggplot(student_data, aes(????)) +
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  filter(!is.na(GABIOLPHD)) %>%
+  ggplot(student_data, aes(x = , y = )) +
   geom_point()
+    
+
     #citizenship/ethnicity vs number of papers (boxplots)
 ggplot(student_data, aes(????)) +
   geom_boxplot()
@@ -411,16 +442,24 @@ pi_data %>%
 
 #Distribution of committee membership (how many committees is each PI on) (histogram) - Student Comittees, need to figure out how to calculate into a graph
 
-#Need tp cLean Up Data and check filtering
+#Need to check if we count committee's PI is on due to student
 
 commit_data <- student_data %>%
   filter(First_Term >= filter.year) %>%
   filter(!is.na(PI)) %>%
-  select(Student_Name, PI, CO_PI, PhD_commitee_member_1, PhD_commitee_member_2, PhD_commitee_member_3) %>%
+  select(PI, CO_PI, PhD_commitee_member_1, PhD_commitee_member_2, PhD_commitee_member_3, PhD_commitee_member_4_external) %>%
   gather(key = 'Position') %>%
   filter(!is.na(value)) %>%
   select(value)
 names(commit_data) <- c("PI")
+
+#Detects if faculty is on a committee not number of times
+#str_detect(commit_data, faculty$Last_Name)
+
+#Count Number of Times Faculty is on a committee
+str_count(commit_data, faculty$Last_Name)
+
+commit_data <- mutate(faculty, Number_Committees = str_count(commit_data, faculty$Last_Name))
 
 commit_data <- mutate(arrange(distinct(commit_data), PI), Number_PIs = tabulate(as.factor(commit_data$PI)))
 
