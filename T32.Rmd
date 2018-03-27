@@ -128,13 +128,13 @@ co_author <- mutate(arrange(distinct(co_author), Student_Name), Co_Author = tabu
 
 total_author <-  paper_data %>%
   select(Student_Name) 
-total_author <- mutate(arrange(distinct(total_author), Student_Name), Number_Papers = tabulate(as.factor(total_author$Student_Name)))
+total_author <- mutate(arrange(distinct(total_author), Student_Name), Total_Papers = tabulate(as.factor(total_author$Student_Name)))
 
-author_data <- left_join(total_author, first_author, by = "Student_Name")
-author_data <- left_join(author_data, co_author, by = "Student_Name")
-names(author_data) <- c("Student_Name", "Total_Papers", "First_Author", "Co_Author")
-author_data$First_Author <- replace_na(author_data$First_Author, 0)
-author_data$Co_Author <- replace_na(author_data$Co_Author, 0)
+student_data <- student_data %>% left_join(total_author, by = "Student_Name") %>% left_join(first_author, by = "Student_Name") %>% left_join(co_author, by = "Student_Name")
+
+student_data$Total_Papers <- replace_na(student_data$Total_Papers, 0)
+student_data$First_Author <- replace_na(student_data$First_Author, 0)
+student_data$Co_Author <- replace_na(student_data$Co_Author, 0)
 
 #For PI commitments
 pi_data <- student_data %>%
@@ -156,6 +156,15 @@ num.comentored <- count(copi_data)
 num.pi_comentoring <- length(unique(c(copi_data$CO_PI, copi_data$PI)))
 
 pi_data <- mutate(arrange(distinct(pi_data), PI), Number_Students = tabulate(as.factor(pi_data$PI)))
+
+commit_data <- student_data %>%
+  filter(First_Term >= filter.year) %>%
+  filter(!is.na(PI)) %>%
+  select(PI, CO_PI, PhD_commitee_member_1, PhD_commitee_member_2, PhD_commitee_member_3, PhD_commitee_member_4_external) %>%
+  gather(key = 'Position') %>%
+  filter(!is.na(value)) %>%
+  select(value)
+names(commit_data) <- c("PI")
 
 commit_data <- mutate(faculty, Number_Committees = str_count(commit_data, faculty$Last_Name))
 ```
@@ -202,7 +211,7 @@ student_data %>%
   ggplot(aes(x = Cit)) +
   geom_bar() +
   ylab("# of Students") +
-  xlab("Coutry of Citizenship") +
+  xlab("Country of Citizenship") +
   scale_y_continuous(expand=c(0,0)) +
   theme_classic() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
@@ -213,7 +222,7 @@ student_data %>%
   geom_bar(width = 1 ) +
   coord_polar(theta = "y", start=0) +
   theme_void() +
-  labs( fill = "Coutry of Citizenship")
+  labs( fill = "Country of Citizenship")
 
   #Ethnicity
 student_data %>%
@@ -265,7 +274,7 @@ student_data %>%
   geom_bar() +
   ylab("# of Students") +
   xlab("Verbal GRE Scorces (New Scale)") +
-  scale_y_continuous(limits = c(0,25), expand=c(0,0)) +
+  scale_y_continuous(expand=c(0,0)) +
   theme_classic() 
 
 student_data %>%
@@ -274,7 +283,7 @@ student_data %>%
   geom_bar() +
   ylab("# of Students") +
   xlab("Quantative GRE Scorces (New Scale)") +
-  scale_y_continuous(limits = c(0,25), expand=c(0,0)) +
+  scale_y_continuous(expand=c(0,0)) +
   theme_classic() 
 
 student_data %>%
@@ -283,7 +292,7 @@ student_data %>%
   geom_bar() +
   ylab("# of Students") +
   xlab("Verbal GRE Scorces Percentage") +
-  scale_y_continuous(limits = c(0,25), expand=c(0,0)) +
+  scale_y_continuous(expand=c(0,0)) +
   theme_classic() 
 
 student_data %>%
@@ -292,42 +301,8 @@ student_data %>%
   geom_bar() +
   ylab("# of Students") +
   xlab("Quantative GRE Scorces Percentage") +
-  scale_y_continuous(limits = c(0,25), expand=c(0,0)) +
+  scale_y_continuous(expand=c(0,0)) +
   theme_classic() 
-
-
-student_data %>%
-  filter(First_Term >= filter.year) %>%
-  ggplot(aes(x = "", fill = EV)) +
-  geom_bar(width = 1 ) +
-  coord_polar(theta = "y", start=0) +
-  theme_void() +
-  labs( fill = "Verbal GRE Scorces (New Scale)")
-
-student_data %>%
-  filter(First_Term >= filter.year) %>%
-  ggplot(aes(x = "", fill = EQ)) +
-  geom_bar(width = 1 ) +
-  coord_polar(theta = "y", start=0) +
-  theme_void() +
-  labs( fill = "Quantative GRE Scorces (New Scale)")
-
-student_data %>%
-  filter(First_Term >= filter.year) %>%
-  ggplot(aes(x = "", fill = EVP)) +
-  geom_bar(width = 1 ) +
-  coord_polar(theta = "y", start=0) +
-  theme_void() +
-  labs( fill = "Verbal GRE Scorces Percentage")
-
-student_data %>%
-  filter(First_Term >= filter.year) %>%
-  ggplot(aes(x = "", fill = EQP)) +
-  geom_bar(width = 1 ) +
-  coord_polar(theta = "y", start=0) +
-  theme_void() +
-  labs( fill = "Quantative GRE Scorces Percentage")
-
 
 #PhD experience (histograms or boxplot with points overlayed)
   #Time to degree
@@ -373,21 +348,36 @@ student_data %>%
 
   #Number of published papers - 
 #1st author
-author_data %>%
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  filter(!is.na(GABIOLPHD)) %>%
   ggplot(aes(x = First_Author )) +
   geom_bar() +
   ylab("# of Students") +
   xlab("# of First Author Papers") +
-  scale_y_continuous(limits = c(0,20), expand=c(0,0)) +
+  scale_y_continuous(expand=c(0,0)) +
   theme_bw() 
 
 #co-author
-author_data %>%
-  ggplot(aes(x = Total_Papers )) +
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  filter(!is.na(GABIOLPHD)) %>%
+  ggplot(aes(x = Co_Author )) +
   geom_bar() +
   ylab("# of Students") +
   xlab("# of Co-Author Papers") +
-  scale_y_continuous(limits = c(0,20), expand=c(0,0)) +
+  scale_y_continuous(expand=c(0,0)) +
+  theme_bw() 
+
+#Total Authored Papers
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  filter(!is.na(GABIOLPHD)) %>%
+  ggplot(aes(x = Total_Papers )) +
+  geom_bar() +
+  ylab("# of Students") +
+  xlab("# of Papers") +
+  scale_y_continuous(expand=c(0,0)) +
   theme_bw() 
 
 #Subsequent position (pie or barplot)
@@ -400,7 +390,7 @@ student_data %>%
   xlab("Position upon gradutation") +
   ylab("# of Students") +
   scale_x_discrete(labels = c("Post-Doctoral Fellowship","Other", "Unkown")) +
-  scale_y_continuous(limits = c(0,50), expand=c(0,0)) +
+  scale_y_continuous(expand=c(0,0)) +
   theme_bw() 
 
 student_data %>%
@@ -436,15 +426,176 @@ pi_data %>%
   annotate("text", x = 7, y = 8, label = paste("Number of PI's Co-Mentoring =",num.pi_comentoring)) +
   ylab("# of PIs") +
   xlab("Students/PI") +
-  scale_y_continuous(limits = c(0,10), expand=c(0,0)) +
+  scale_y_continuous(expand=c(0,0)) +
   theme_bw() 
 
 commit_data %>%
-  ggplot(aes(x = Number_PIs )) +
+  ggplot(aes(x = Number_Committees )) +
   geom_bar() +
   ylab("# of PIs") +
   xlab("# of Committee Memberships") +
-  scale_y_continuous(limits = c(0,10), expand=c(0,0)) +
+  scale_y_continuous(expand=c(0,0)) +
   theme_bw() 
 
+#Test predictors of PhD experience
+    #GRE vs number of papers (scatter plot)
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  filter(!is.na(GABIOLPHD)) %>%
+  ggplot() +
+  geom_point(aes(x = EV, y = First_Author), color = 'red') +
+  geom_point(aes(x = EQ, y = First_Author), color = 'blue') +
+  theme_bw() 
+
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  filter(!is.na(GABIOLPHD)) %>%
+  ggplot() + 
+  geom_point(aes(x = (EV+EQ), y = First_Author)) +
+  theme_bw() 
+
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  filter(!is.na(GABIOLPHD)) %>%
+  ggplot() +
+  geom_point(aes(x = EV, y = Co_Author), color = 'red') +
+  geom_point(aes(x = EQ, y = Co_Author), color = 'blue') +
+  theme_bw() 
+
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  filter(!is.na(GABIOLPHD)) %>%
+  ggplot() + 
+  geom_point(aes(x = (EV+EQ), y = Co_Author)) +
+  theme_bw() 
+
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  filter(!is.na(GABIOLPHD)) %>%
+  ggplot() +
+  geom_point(aes(x = EV, y = Total_Papers), color = 'red') +
+  geom_point(aes(x = EQ, y = Total_Papers), color = 'blue') +
+  theme_bw() 
+
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  filter(!is.na(GABIOLPHD)) %>%
+  ggplot() + 
+  geom_point(aes(x = (EV+EQ), y = Total_Papers)) +
+  theme_bw() 
+
+
+    #citizenship/ethnicity vs number of papers (boxplots)
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  filter(!is.na(GABIOLPHD)) %>%
+  ggplot() +
+   geom_boxplot(aes(x = Citz_Stat_Cd, y = First_Author)) +
+  scale_x_discrete(labels = c("Citizen","Permanent Resisdent", "Non-Resident Alien")) +
+  theme_bw()
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  filter(!is.na(GABIOLPHD)) %>%
+  ggplot() +
+   geom_boxplot(aes(x = Citz_Stat_Cd, y = Co_Author)) +
+  scale_x_discrete(labels = c("Citizen","Permanent Resisdent", "Non-Resident Alien")) +
+  theme_bw() 
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  filter(!is.na(GABIOLPHD)) %>%
+  ggplot() +
+   geom_boxplot(aes(x = Citz_Stat_Cd, y = Total_Papers)) +
+  scale_x_discrete(labels = c("Citizen","Permanent Resisdent", "Non-Resident Alien")) +
+  theme_bw() 
+
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  filter(!is.na(GABIOLPHD)) %>%
+  ggplot() +
+  geom_boxplot(aes(x = Nyu_Ipeds_Eth_Ld, y = First_Author)) +
+  theme_bw()
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  filter(!is.na(GABIOLPHD)) %>%
+  ggplot() +
+   geom_boxplot(aes(x = Nyu_Ipeds_Eth_Ld, y = Co_Author)) +
+  theme_bw() 
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  filter(!is.na(GABIOLPHD)) %>%
+  ggplot() +
+   geom_boxplot(aes(x = Nyu_Ipeds_Eth_Ld, y = Total_Papers)) +
+  theme_bw() 
+
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  filter(!is.na(GABIOLPHD)) %>%
+  ggplot() +
+  geom_boxplot(aes(x = Cit, y = First_Author)) +
+  theme_bw()
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  filter(!is.na(GABIOLPHD)) %>%
+  ggplot() +
+   geom_boxplot(aes(x = Cit, y = Co_Author)) +
+  theme_bw() 
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  filter(!is.na(GABIOLPHD)) %>%
+  ggplot() +
+   geom_boxplot(aes(x = Cit, y = Total_Papers)) +
+  theme_bw() 
+
+
+    #Number of papers vs postdoc or not postdoc (boxplots)
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  filter(!is.na(GABIOLPHD)) %>%
+  ggplot() +
+  geom_boxplot(aes(x = (Employment_upon_graduation != 'Post-Doctoral Fellowship'), y = First_Author)) +
+  xlab("Position upon gradutation") +
+  scale_x_discrete(labels = c("Post-Doctoral Fellowship","Other", "Unkown")) +
+  theme_bw()
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  filter(!is.na(GABIOLPHD)) %>%
+  ggplot() +
+  geom_boxplot(aes(x = (Employment_upon_graduation != 'Post-Doctoral Fellowship'), y = Co_Author)) +
+  xlab("Position upon gradutation") +
+  scale_x_discrete(labels = c("Post-Doctoral Fellowship","Other", "Unkown")) +
+  theme_bw()
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  filter(!is.na(GABIOLPHD)) %>%
+  ggplot() +
+  geom_boxplot(aes(x = (Employment_upon_graduation != 'Post-Doctoral Fellowship'), y = Total_Papers)) +
+  xlab("Position upon gradutation") +
+  scale_x_discrete(labels = c("Post-Doctoral Fellowship","Other", "Unkown")) +
+  theme_bw()
+  
+    #Semesters teaching vs number of papers (scatter)
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  filter(!is.na(GABIOLPHD)) %>%
+  ggplot() +
+  geom_point(aes(x = Semesters_of_teaching, y = First_Author)) +
+  xlab("Semesters of Teaching") +
+  theme_bw()
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  filter(!is.na(GABIOLPHD)) %>%
+  ggplot() +
+  geom_point(aes(x = Semesters_of_teaching, y = Co_Author)) +
+  xlab("Semesters of Teaching") +
+  theme_bw()
+student_data %>%
+  filter(First_Term >= filter.year) %>%
+  filter(!is.na(GABIOLPHD)) %>%
+  ggplot() +
+  geom_point(aes(x = Semesters_of_teaching, y = Total_Papers)) +
+  xlab("Semesters of Teaching") +
+  theme_bw()
+  
+  
+  
 ```
