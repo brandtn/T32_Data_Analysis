@@ -102,7 +102,7 @@ glimpse(faculty)
 #Set global vairable
 ```{r}
 #Filter by Year
-filter.year <- 2000
+filter.year <- 2002
 ```
 
 #Transform Data - For all analysis
@@ -598,4 +598,25 @@ student_data %>%
   
   
   
+```
+
+#Tables
+``` {r}
+success <- tibble( 
+  Success = c("First Author Publications Per Student", "Total Publications Per Student", "Dean's Dissertation Award", "Kopaz Teaching Award", "F31 Pre-Doctoral Fellowships", "NSF Pre-Doctoral Fellowships", "Other Pre-Doctoral Fellowships"), 
+  During_Last_15_Years = c(0), 
+  During_Last_5_Years = c(0))
+
+academic_career <- tibble( 
+  Academic_Careers = c("Post-Doctoral Positions", "Faculty Positions", "Teaching Positions"), 
+  Last_15_Years = c(0), 
+  Last_5_Years = c(0))
+
+other_career <- tibble( 
+  Non_Academic_Careers = c("Editing", "Industry", "Management", "Other"), 
+  Last_15_Years = c(0), 
+  Last_5_Years = c(0))
+
+
+
 ```
