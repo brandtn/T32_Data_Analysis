@@ -99,6 +99,9 @@ student_data$GABIOLPHD <- sapply(student_data$GABIOLPHD, convertdate_year)
 #Correct data types for proper analysis
 student_data$Citz_Stat_Cd <- as.factor(student_data$Citz_Stat_Cd)
 
+#Correct degree typo of BZ to BS
+student_data$Deg <- replace(student_data$Deg, student_data$Deg == 'BZ', 'BS')
+
 glimpse(student_data)
 
 #Read in Faculty List for analysis
@@ -261,7 +264,7 @@ student_data %>%
 # BBA = Bachelor of Business Administration
 # BSA = Bachelor or Science and Arts
 # BENG = Bachelor of Engineering
-# BZ = Unkonwn
+# BZ = Unkonwn - Typo, corrected to BS 
 student_data %>%
   filter(First_Term >= filter.year) %>%
   ggplot(aes(x = Deg)) +
@@ -629,7 +632,27 @@ other_career <- tibble(
   Non_Academic_Careers = c("Editing", "Industry", "Management", "Other"), 
   Last_15_Years = c(0), 
   Last_5_Years = c(0))
+```
 
+#Table_Data
+```{r}
+View(student_data %>% filter(Most_Recent == 2017) %>% select(Student_Name,PI))
+
+#current Students
+View(summarize(student_data %>% filter(Most_Recent == 2017) %>% select(Student_Name), n()))
+
+#Number of Student per particpating faculty
+sum(str_count(student_data %>% filter(Most_Recent == 2017) %>% select(Student_Name, PI), faculty$Last_Name))
+
+participating_faculty_data <- student_data %>%
+  filter(Most_Recent == 2017) %>% 
+  select(Student_Name,PI) %>% 
+  filter(!is.na(PI)) %>%
+  select(PI)
+
+participating_faculty_data <- mutate(faculty, Number_Student = str_count(participating_faculty_data , faculty$Last_Name)) 
+
+View(participating_faculty_data %>% filter(Participating == 'Yes'))
 
 
 ```
