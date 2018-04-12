@@ -108,13 +108,23 @@ glimpse(student_data)
 faculty <- gs_read(ss = gs_title("Faculty_List"))
 
 glimpse(faculty)
+
+#Read in Application Data
+app_data <- gs_read(ss = gs_title("BIOL_PHD_2018"))
+
+app_data$Admit_Term <- sapply(app_data$Admit_Term, convertdate_year)
+app_data$Admit_Term <- as.factor(app_data$Admit_Term)
+
+glimpse(app_data)
+
 ```
 
 
 #Set global vairable
 ```{r}
 #Filter by Year
-filter.year <- 2002
+filter.year <- 2012
+current.year <-2017
 ```
 
 #Transform Data - For all analysis
@@ -186,6 +196,9 @@ commit_data <- mutate(faculty, Number_Committees = str_count(commit_data, facult
 #multi.page <- ggarrange(bar, pie, nrow = 1, ncol = 1)
 #ggexport(multi.page, filename = "Citzenship.pdf")
 #ggsave("StudentsPerYear.pdf")
+#Generic Save with Year Cutoff
+#ggsave(paste("_",(current.year - filter.year),".jpg", sep = ""))
+
 ```{r}
 #How many students per year? (dot and line plot)
 student_data %>%
@@ -198,6 +211,7 @@ student_data %>%
   theme_bw() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
+ggsave(paste("NumberStudentPerYear_",(current.year - filter.year),".jpg", sep = ""))
 
 #Demographics (pie or barcharts)
   #Citizenship status
@@ -212,6 +226,8 @@ student_data %>%
   scale_y_continuous(expand=c(0,0)) +
   theme_classic() 
 
+ggsave(paste("StudentCitizenshipStatus_Bar_",(current.year - filter.year),".jpg", sep = ""))
+
 student_data %>%
   filter(First_Term >= filter.year) %>%
   ggplot(aes(x = "", fill = Citz_Stat_Cd)) +
@@ -220,6 +236,9 @@ student_data %>%
   theme_void() +
   labs( fill = "U.S. Citizenship Status") +
   scale_fill_discrete(labels = c("Citizen","Permanent Resisdent", "Non-Resident Alien"))
+
+ggsave(paste("StudentCitizenshipStatus_Pie_",(current.year - filter.year),".jpg", sep = ""))
+
 
   #Country of citizenship
 student_data %>%
@@ -232,6 +251,9 @@ student_data %>%
   theme_classic() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
+ggsave(paste("CountryCitizenship_Bar_",(current.year - filter.year),".jpg", sep = ""))
+
+
 student_data %>%
   filter(First_Term >= filter.year) %>%
   ggplot(aes(x = "", fill = Cit)) +
@@ -239,6 +261,9 @@ student_data %>%
   coord_polar(theta = "y", start=0) +
   theme_void() +
   labs( fill = "Country of Citizenship")
+
+ggsave(paste("CountryCitizenship_Pie_",(current.year - filter.year),".jpg", sep = ""))
+
 
   #Ethnicity
 student_data %>%
@@ -250,6 +275,9 @@ student_data %>%
   scale_y_continuous(expand=c(0,0)) +
   theme_classic() 
 
+ggsave(paste("Ethnicity_Bar_",(current.year - filter.year),".jpg", sep = ""))
+
+
 student_data %>%
   filter(First_Term >= filter.year) %>%
   ggplot(aes(x = "", fill = Nyu_Ipeds_Eth_Ld)) +
@@ -257,6 +285,9 @@ student_data %>%
   coord_polar(theta = "y", start=0) +
   theme_void() +
   labs( fill = "Ethnicity")
+
+ggsave(paste("Ethnicity_Pie_",(current.year - filter.year),".jpg", sep = ""))
+
 
   #Qualifications upon entry to program - Unsure what this is? BS vs BA???
 # BA = Bachelor of the Arts
@@ -274,6 +305,9 @@ student_data %>%
   scale_y_continuous(expand=c(0,0)) +
   theme_classic() 
 
+ggsave(paste("UndergradDegree_Bar_",(current.year - filter.year),".jpg", sep = ""))
+
+
 student_data %>%
   filter(First_Term >= filter.year) %>%
   ggplot(aes(x = "", fill = Deg)) +
@@ -281,6 +315,9 @@ student_data %>%
   coord_polar(theta = "y", start=0) +
   theme_void() +
   labs( fill = "Undergraduate Degree")
+
+ggsave(paste("UndergradDegree_Pie_",(current.year - filter.year),".jpg", sep = ""))
+
 
 #GRE scores - How to look at it? 
 #Have 4 columns of data. Verbal and Quantative, both old and new syle of scoring
@@ -293,6 +330,9 @@ student_data %>%
   scale_y_continuous(expand=c(0,0)) +
   theme_classic() 
 
+ggsave(paste("VerbalGRE_New_Bar_",(current.year - filter.year),".jpg", sep = ""))
+
+
 student_data %>%
   filter(First_Term >= filter.year) %>%
   ggplot(aes(x = EQ)) +
@@ -301,6 +341,9 @@ student_data %>%
   xlab("Quantative GRE Scorces (New Scale)") +
   scale_y_continuous(expand=c(0,0)) +
   theme_classic() 
+
+ggsave(paste("QuantGRE_New_Bar_",(current.year - filter.year),".jpg", sep = ""))
+
 
 student_data %>%
   filter(First_Term >= filter.year) %>%
@@ -311,6 +354,9 @@ student_data %>%
   scale_y_continuous(expand=c(0,0)) +
   theme_classic() 
 
+ggsave(paste("VerbalGRE_Old_Bar_",(current.year - filter.year),".jpg", sep = ""))
+
+
 student_data %>%
   filter(First_Term >= filter.year) %>%
   ggplot(aes(x = EQP)) +
@@ -319,6 +365,9 @@ student_data %>%
   xlab("Quantative GRE Scorces Percentage") +
   scale_y_continuous(expand=c(0,0)) +
   theme_classic() 
+
+ggsave(paste("QuantGRE_Old_Bar_",(current.year - filter.year),".jpg", sep = ""))
+
 
 #PhD experience (histograms or boxplot with points overlayed)
   #Time to degree
@@ -332,6 +381,9 @@ student_data %>%
   scale_y_continuous(expand=c(0,0)) +
   theme_bw() 
 
+ggsave(paste("StudentYearstoPhD_Histo_",(current.year - filter.year),".jpg", sep = ""))
+
+
 student_data %>%
   filter(First_Term >= filter.year) %>%
   filter(!is.na(GABIOLPHD)) %>%
@@ -342,6 +394,9 @@ student_data %>%
   xlab("") +
   theme_bw() +
   theme(axis.ticks.x = element_blank())
+
+ggsave(paste("StudentYearstoPhD_Boxplot_",(current.year - filter.year),".jpg", sep = ""))
+
 
   #Number of semesters of teaching
 student_data %>%
@@ -354,6 +409,9 @@ student_data %>%
   scale_y_continuous(expand=c(0,0)) +
   theme_bw() 
 
+ggsave(paste("StudentSemestersTeaching_Histo_",(current.year - filter.year),".jpg", sep = ""))
+
+
 student_data %>%
   filter(First_Term >= filter.year) %>%
   filter(!is.na(GABIOLPHD)) %>%
@@ -361,6 +419,9 @@ student_data %>%
   geom_boxplot() +
   ylab("Semesters of Teaching") +
   theme_bw() 
+
+ggsave(paste("StudentSemestersTeaching_Boxplot_",(current.year - filter.year),".jpg", sep = ""))
+
 
   #Number of published papers - 
 #1st author
@@ -374,6 +435,9 @@ student_data %>%
   scale_y_continuous(expand=c(0,0)) +
   theme_bw() 
 
+ggsave(paste("Number_1stAuthorPapers_Bar_",(current.year - filter.year),".jpg", sep = ""))
+
+
 #co-author
 student_data %>%
   filter(First_Term >= filter.year) %>%
@@ -385,6 +449,9 @@ student_data %>%
   scale_y_continuous(expand=c(0,0)) +
   theme_bw() 
 
+ggsave(paste("Number_Co-AuthorPapers_Bar_",(current.year - filter.year),".jpg", sep = ""))
+
+
 #Total Authored Papers
 student_data %>%
   filter(First_Term >= filter.year) %>%
@@ -395,6 +462,9 @@ student_data %>%
   xlab("# of Papers") +
   scale_y_continuous(expand=c(0,0)) +
   theme_bw() 
+
+ggsave(paste("Number_TotalPapers_Bar_",(current.year - filter.year),".jpg", sep = ""))
+
 
 #Subsequent position (pie or barplot)
 #Postdoc vs not postdoc
@@ -409,6 +479,9 @@ student_data %>%
   scale_y_continuous(expand=c(0,0)) +
   theme_bw() 
 
+ggsave(paste("PositionUponGrad_Bar_",(current.year - filter.year),".jpg", sep = ""))
+
+
 student_data %>%
   filter(First_Term >= filter.year) %>%
   filter(!is.na(GABIOLPHD)) %>%
@@ -418,6 +491,9 @@ student_data %>%
   theme_void() +
   labs( fill = "Position upon gradutation") +
   scale_fill_discrete(labels = c("Post-Doctoral Fellowship","Other", "Unkown"))
+
+ggsave(paste("PositionUponGrad_Pie_",(current.year - filter.year),".jpg", sep = ""))
+
 
 #Postdoc institution
 student_data %>%
@@ -429,8 +505,8 @@ student_data %>%
   ylab("# of Students") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
-#Summary of employment
-??????
+ggsave(paste("PostDoc_Institution_Bar_",(current.year - filter.year),".jpg", sep = ""))
+
   
 #Distribution of committee membership (how many committees is each PI on) (histogram) - Student Comittees, need to figure out how to calculate into a graph
 
@@ -442,16 +518,22 @@ pi_data %>%
   annotate("text", x = 7, y = 8, label = paste("Number of PI's Co-Mentoring =",num.pi_comentoring)) +
   ylab("# of PIs") +
   xlab("Students/PI") +
-  scale_y_continuous(expand=c(0,0)) +
+  scale_y_continuous(expand=c(0,0), limits = c(0,12)) +
   theme_bw() 
+
+ggsave(paste("Students/PI_Bar_",(current.year - filter.year),".jpg", sep = ""))
+
 
 commit_data %>%
   ggplot(aes(x = Number_Committees )) +
   geom_bar() +
   ylab("# of PIs") +
   xlab("# of Committee Memberships") +
-  scale_y_continuous(expand=c(0,0)) +
+  scale_y_continuous(expand=c(0,0), limits = c(0,25)) +
   theme_bw() 
+
+ggsave(paste("CommitteMemberships/PI_Bar_",(current.year - filter.year),".jpg", sep = ""))
+
 
 #Test predictors of PhD experience
     #GRE vs number of papers (scatter plot)
@@ -462,6 +544,9 @@ student_data %>%
   geom_point(aes(x = EV, y = First_Author), color = 'red') +
   geom_point(aes(x = EQ, y = First_Author), color = 'blue') +
   theme_bw() 
+
+ggsave(paste("GREvs1stPaper_",(current.year - filter.year),".jpg", sep = ""))
+
 
 student_data %>%
   filter(First_Term >= filter.year) %>%
@@ -478,6 +563,9 @@ student_data %>%
   geom_point(aes(x = EQ, y = Co_Author), color = 'blue') +
   theme_bw() 
 
+ggsave(paste("GREvsCoPaper_",(current.year - filter.year),".jpg", sep = ""))
+
+
 student_data %>%
   filter(First_Term >= filter.year) %>%
   filter(!is.na(GABIOLPHD)) %>%
@@ -492,6 +580,9 @@ student_data %>%
   geom_point(aes(x = EV, y = Total_Papers), color = 'red') +
   geom_point(aes(x = EQ, y = Total_Papers), color = 'blue') +
   theme_bw() 
+
+ggsave(paste("GREvsTotalPaper_",(current.year - filter.year),".jpg", sep = ""))
+
 
 student_data %>%
   filter(First_Term >= filter.year) %>%
@@ -509,6 +600,10 @@ student_data %>%
    geom_boxplot(aes(x = Citz_Stat_Cd, y = First_Author)) +
   scale_x_discrete(labels = c("Citizen","Permanent Resisdent", "Non-Resident Alien")) +
   theme_bw()
+
+ggsave(paste("Citizenshivs1stPaper_",(current.year - filter.year),".jpg", sep = ""))
+
+
 student_data %>%
   filter(First_Term >= filter.year) %>%
   filter(!is.na(GABIOLPHD)) %>%
@@ -516,6 +611,9 @@ student_data %>%
    geom_boxplot(aes(x = Citz_Stat_Cd, y = Co_Author)) +
   scale_x_discrete(labels = c("Citizen","Permanent Resisdent", "Non-Resident Alien")) +
   theme_bw() 
+
+ggsave(paste("CitizenshivsCoPaper_",(current.year - filter.year),".jpg", sep = ""))
+
 student_data %>%
   filter(First_Term >= filter.year) %>%
   filter(!is.na(GABIOLPHD)) %>%
@@ -524,18 +622,29 @@ student_data %>%
   scale_x_discrete(labels = c("Citizen","Permanent Resisdent", "Non-Resident Alien")) +
   theme_bw() 
 
+ggsave(paste("CitizenshipvsTotalPaper_",(current.year - filter.year),".jpg", sep = ""))
+
+
 student_data %>%
   filter(First_Term >= filter.year) %>%
   filter(!is.na(GABIOLPHD)) %>%
   ggplot() +
   geom_boxplot(aes(x = Nyu_Ipeds_Eth_Ld, y = First_Author)) +
   theme_bw()
+
+ggsave(paste("Ethiticityvs1stPaper_",(current.year - filter.year),".jpg", sep = ""))
+
+
 student_data %>%
   filter(First_Term >= filter.year) %>%
   filter(!is.na(GABIOLPHD)) %>%
   ggplot() +
    geom_boxplot(aes(x = Nyu_Ipeds_Eth_Ld, y = Co_Author)) +
   theme_bw() 
+
+ggsave(paste("EthiticityvsCoPaper_",(current.year - filter.year),".jpg", sep = ""))
+
+
 student_data %>%
   filter(First_Term >= filter.year) %>%
   filter(!is.na(GABIOLPHD)) %>%
@@ -543,24 +652,39 @@ student_data %>%
    geom_boxplot(aes(x = Nyu_Ipeds_Eth_Ld, y = Total_Papers)) +
   theme_bw() 
 
+ggsave(paste("EthiticityvsTotalPaper_",(current.year - filter.year),".jpg", sep = ""))
+
+
+
 student_data %>%
   filter(First_Term >= filter.year) %>%
   filter(!is.na(GABIOLPHD)) %>%
   ggplot() +
   geom_boxplot(aes(x = Cit, y = First_Author)) +
   theme_bw()
+
+ggsave(paste("Countryvs1stPaper_",(current.year - filter.year),".jpg", sep = ""))
+
+
+
 student_data %>%
   filter(First_Term >= filter.year) %>%
   filter(!is.na(GABIOLPHD)) %>%
   ggplot() +
    geom_boxplot(aes(x = Cit, y = Co_Author)) +
   theme_bw() 
+
+ggsave(paste("CountryvsCoPaper_",(current.year - filter.year),".jpg", sep = ""))
+
+
 student_data %>%
   filter(First_Term >= filter.year) %>%
   filter(!is.na(GABIOLPHD)) %>%
   ggplot() +
    geom_boxplot(aes(x = Cit, y = Total_Papers)) +
   theme_bw() 
+
+ggsave(paste("CountryvsTotalPaper_",(current.year - filter.year),".jpg", sep = ""))
 
 
     #Number of papers vs postdoc or not postdoc (boxplots)
@@ -572,6 +696,11 @@ student_data %>%
   xlab("Position upon gradutation") +
   scale_x_discrete(labels = c("Post-Doctoral Fellowship","Other", "Unkown")) +
   theme_bw()
+
+ggsave(paste("1stAuthorvsPosition_",(current.year - filter.year),".jpg", sep = ""))
+
+
+
 student_data %>%
   filter(First_Term >= filter.year) %>%
   filter(!is.na(GABIOLPHD)) %>%
@@ -580,6 +709,10 @@ student_data %>%
   xlab("Position upon gradutation") +
   scale_x_discrete(labels = c("Post-Doctoral Fellowship","Other", "Unkown")) +
   theme_bw()
+
+ggsave(paste("CoAuthorvsPosition_",(current.year - filter.year),".jpg", sep = ""))
+
+
 student_data %>%
   filter(First_Term >= filter.year) %>%
   filter(!is.na(GABIOLPHD)) %>%
@@ -589,6 +722,9 @@ student_data %>%
   scale_x_discrete(labels = c("Post-Doctoral Fellowship","Other", "Unkown")) +
   theme_bw()
   
+ggsave(paste("TotalAuthorvsPosition_",(current.year - filter.year),".jpg", sep = ""))
+
+
     #Semesters teaching vs number of papers (scatter)
 student_data %>%
   filter(First_Term >= filter.year) %>%
@@ -597,6 +733,10 @@ student_data %>%
   geom_point(aes(x = Semesters_of_teaching, y = First_Author)) +
   xlab("Semesters of Teaching") +
   theme_bw()
+
+ggsave(paste("Teachingvs1stAuthor_",(current.year - filter.year),".jpg", sep = ""))
+
+
 student_data %>%
   filter(First_Term >= filter.year) %>%
   filter(!is.na(GABIOLPHD)) %>%
@@ -604,6 +744,10 @@ student_data %>%
   geom_point(aes(x = Semesters_of_teaching, y = Co_Author)) +
   xlab("Semesters of Teaching") +
   theme_bw()
+
+ggsave(paste("TeachingvsCoAuthor_",(current.year - filter.year),".jpg", sep = ""))
+
+
 student_data %>%
   filter(First_Term >= filter.year) %>%
   filter(!is.na(GABIOLPHD)) %>%
@@ -611,9 +755,37 @@ student_data %>%
   geom_point(aes(x = Semesters_of_teaching, y = Total_Papers)) +
   xlab("Semesters of Teaching") +
   theme_bw()
-  
-  
-  
+ggsave(paste("TeachingvsTotalAuthor_",(current.year - filter.year),".jpg", sep = ""))
+
+
+```
+
+```{r}
+#Grad School Application, Admits, and Enrollments
+app_years = c("Fall, 2013", "Fall, 2014", "Fall, 2015", "Fall, 2016", "Fall, 2017", "Fall, 2018")
+
+app_data %>%
+  filter(Ipeds_Race_Category != 9) %>% #Filter to remove non-citizens and non-permenant residents, Using International status as a proxity, holds up when compared to T32 data on enrolled students
+  ggplot(aes(x = Admit_Term)) +
+    geom_bar(data = . %>% filter(App == 1), aes(fill = "App"), width = 0.8, colour = 'black') +
+    geom_text(data = . %>% filter(App == 1), stat='count', aes(label=..count..), vjust = -0.5, size = 2) +
+    geom_bar(data = . %>% filter(Admit == 1), aes(fill = "Admit"), width = 0.4, colour = 'black') +
+    geom_text(data = . %>% filter(Admit == 1), stat='count', aes(label=..count..), vjust = -0.5, size = 2) +
+    #geom_bar(data = . %>% filter(Accept == 1), aes(fill = "Accept")) +
+    #geom_text(data = . %>% filter(Accept == 1), stat='count', aes(label=..count..), vjust = -1, size = 1) +
+    geom_bar(data = . %>% filter(Enroll == 1), aes(fill = "Enroll"), width = 0.2, colour = 'black')  +
+    geom_text(data = . %>% filter(Enroll == 1), stat='count', aes(label=..count..), vjust = -0.5, size = 2) +
+    #ggtitle("Graduate School Applicants, Admits, & New Enrollments") +
+    ggtitle("Graduate School Applicants, Admits, & New Enrollments", subtitle = "Eligible Applicants") +
+    scale_y_continuous(expand=c(0,0), limits = c(0,280)) +
+    scale_x_discrete(labels = app_years) +
+    scale_fill_manual(breaks = c("App","Admit", "Enroll"),  values=c("grey", "wheat", "red"), labels = c("Applicants", "Admitted Applicants", "New Enrollments")) +
+    theme(plot.subtitle = element_text(hjust = 0.4), axis.title = element_blank(), axis.text.y = element_blank(), axis.text.x = element_text(size = 10 ), axis.ticks = element_blank(), panel.background = element_blank(), axis.line.x = element_line(), legend.title = element_blank(), legend.position = "left")
+
+
+#ggsave("Grad_Apps_All.jpg")
+ggsave("Grad_Apps_Eligible.jpg")
+
 ```
 
 #Tables
