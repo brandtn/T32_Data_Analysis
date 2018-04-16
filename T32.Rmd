@@ -100,7 +100,8 @@ student_data$GABIOLPHD <- sapply(student_data$GABIOLPHD, convertdate_year)
 student_data$Citz_Stat_Cd <- as.factor(student_data$Citz_Stat_Cd)
 student_data$Nyu_Ipeds_Eth_Ld <- as.factor(student_data$Nyu_Ipeds_Eth_Ld)
 student_data$Nyu_Ipeds_Eth_Ld <- factor(student_data$Nyu_Ipeds_Eth_Ld, levels = c("Asian/Pacific Islander", "Black", "Hispanic", "Two or More Races", "White", "Not Applicable"))
-
+student_data$Employment_upon_grad_code <- as.factor(student_data$Employment_upon_grad_code)
+student_data$Employment_upon_grad_code <- factor(student_data$Employment_upon_grad_code, levels = c("Post-Doctoral Fellowship","Non-Academic Research", "Other"))
 
 #Correct degree typo of BZ to BS
 student_data$Deg <- replace(student_data$Deg, student_data$Deg == 'BZ', 'BS')
@@ -165,7 +166,7 @@ student_data$Co_Author <- replace_na(student_data$Co_Author, 0)
 
 #For PI commitments
 pi_data <- student_data %>%
-  #filter(First_Term >= filter.year) %>%
+  filter(First_Term >= filter.year) %>%
   filter(!is.na(PI)) %>%
   select(PI, CO_PI) %>%
   gather(key = 'Position') %>%
@@ -174,7 +175,7 @@ pi_data <- student_data %>%
 names(pi_data) <- c("PI")
 
 copi_data <- student_data %>%
-  #filter(First_Term >= filter.year) %>%
+  filter(First_Term >= filter.year) %>%
   filter(!is.na(PI)) %>%
   select(PI, CO_PI) %>% 
   filter(!is.na(CO_PI))
@@ -184,8 +185,16 @@ num.pi_comentoring <- length(unique(c(copi_data$CO_PI, copi_data$PI)))
 
 pi_data <- mutate(arrange(distinct(pi_data), PI), Number_Students = tabulate(as.factor(pi_data$PI)))
 
+faculty_list <- faculty %>% select(Last_Name)
+names(faculty_list) <- c("PI")
+
+pi_data <-left_join(faculty_list, pi_data, by = "PI")
+pi_data$Number_Students <- replace(pi_data$Number_Students, is.na(pi_data$Number_Students), 0)
+pi_data$Number_Students <- as.factor(pi_data$Number_Students)
+
+
 commit_data <- student_data %>%
-  #filter(First_Term >= filter.year) %>%
+  filter(First_Term >= filter.year) %>%
   filter(!is.na(PI)) %>%
   select(PI, CO_PI, PhD_commitee_member_1, PhD_commitee_member_2, PhD_commitee_member_3, PhD_commitee_member_4_external) %>%
   gather(key = 'Position') %>%
@@ -524,15 +533,16 @@ ggsave(paste("Number_TotalPapers_Bar_",(current.year - filter.year),".jpg", sep 
 student_data %>%
   filter(GABIOLPHD >= filter.year) %>%
   filter(!is.na(GABIOLPHD)) %>%
-  ggplot(aes(x = (Employment_upon_graduation != 'Post-Doctoral Fellowship'))) +
+  filter(!is.na(PI)) %>%
+  ggplot(aes(x = (Employment_upon_grad_code))) +
   geom_bar() +
   xlab("Position upon gradutation") +
   ylab("# of Students") +
-  scale_x_discrete(labels = c("Post-Doctoral Fellowship","Other", "Unkown")) +
+  scale_x_discrete(labels = c("Post-Doctoral\nFellowship","Non-Academic\nResearch", "Other", "Unkown")) +
   scale_y_continuous(expand=c(0,0), limits = c(0,70)) +
   theme_bw() 
 
-#ggsave(paste("PositionUponGrad_Bar_",(current.year - filter.year),".jpg", sep = ""))
+ggsave(paste("PositionUponGrad_Bar_",(current.year - filter.year),".jpg", sep = ""))
 
 
 student_data %>%
@@ -567,11 +577,12 @@ ggsave(paste("PostDoc_Institution_Bar_",(current.year - filter.year),".jpg", sep
 pi_data %>%
   ggplot(aes(x = Number_Students )) +
   geom_bar() +
-  annotate("text", x = 7, y = 9, label = paste("Number of Students Co-Mentored =",num.comentored)) +
-  annotate("text", x = 7, y = 8, label = paste("Number of PI's Co-Mentoring =",num.pi_comentoring)) +
+  annotate("text", x = 5, y = 9, label = paste("Number of Students Co-Mentored =",num.comentored)) +
+  annotate("text", x = 5, y = 8, label = paste("Number of PI's Co-Mentoring =",num.pi_comentoring)) +
   ylab("# of PIs") +
   xlab("Students/PI") +
-  scale_y_continuous(expand=c(0,0), limits = c(0,12)) +
+  scale_y_continuous(expand=c(0,0)) +
+  scale_x_discrete(breaks = c(0:12), labels = c(0:12)) +
   theme_bw() 
 
 ggsave(paste("StudentsperPI_Bar_",(current.year - filter.year),".jpg", sep = ""))
@@ -582,7 +593,7 @@ commit_data %>%
   geom_bar() +
   ylab("# of PIs") +
   xlab("# of Committee Memberships") +
-  scale_y_continuous(expand=c(0,0), limits = c(0,25)) +
+  scale_y_continuous(expand=c(0,0)) +
   theme_bw() 
 
 ggsave(paste("CommitteMembershipsperPI_Bar_",(current.year - filter.year),".jpg", sep = ""))
