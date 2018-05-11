@@ -88,7 +88,7 @@ if(update.pi == 'Yes') {
 ```{r}
 #read in and check data from Google Sheet
 #First Time requires the input of an authroazation key
-current.sheet <- 'T_32_Updated_04162018'
+current.sheet <- 'T_32_Data'
 student_data <- gs_read(ss = gs_title(current.sheet))
 
 #Convert to Usable Dates - Years only for now
@@ -471,8 +471,8 @@ ggsave(paste("Number_1stAuthorPapers_",(current.year - filter.year),".jpg", sep 
 #1st author -
 student_data %>%
   filter(GABIOLPHD >= filter.year) %>%
-  filter(!is.na(PI)) %>%
-  filter(!is.na(GABIOLPHD)) %>%
+  #filter(!is.na(PI)) %>%
+  #filter(!is.na(GABIOLPHD)) %>%
   ggplot(aes(x = First_Author )) +
   geom_bar() +
   ylab("# of Students") +
@@ -536,15 +536,17 @@ ggsave(paste("Number_TotalPapers_Bar_",(current.year - filter.year),".jpg", sep 
 #Postdoc vs not postdoc
 student_data %>%
   filter(GABIOLPHD >= filter.year) %>%
-  filter(!is.na(GABIOLPHD)) %>%
-  filter(!is.na(PI)) %>%
+  #filter(!is.na(GABIOLPHD)) %>%
+  #filter(!is.na(PI)) %>%
   ggplot(aes(x = (Employment_upon_grad_code))) +
   geom_bar() +
   xlab("Position upon gradutation") +
   ylab("# of Students") +
-  scale_x_discrete(labels = c("Post-Doctoral\nFellowship","Non-Academic\nResearch", "Other", "Unkown")) +
-  scale_y_continuous(expand=c(0,0), limits = c(0,30)) +
-  theme_bw() 
+  #scale_x_discrete(labels = c("Post-Doctoral\nFellowship","Non-Academic\nResearch", "Other", "Unkown")) +
+  scale_y_continuous(expand=c(0,0), limits = c(0,70)) +
+  theme_bw() +
+  geom_text(stat='count', aes(label=..count..), vjust = -0.5, size = 2)
+
 
 ggsave(paste("PositionUponGrad_Bar_",(current.year - filter.year),".jpg", sep = ""))
 
@@ -553,14 +555,19 @@ student_data %>%
   filter(GABIOLPHD >= filter.year) %>%
   filter(!is.na(GABIOLPHD)) %>%
   filter(!is.na(PI)) %>%
-  filter(!is.na(Current_position_code)) %>%
-  ggplot(aes(x = (Current_position_code))) +
+  #filter(!is.na(Current_position_code)) %>%
+  ggplot(aes(x = (Alt_position_code))) +
   geom_bar() +
   xlab("Current_position") +
   ylab("# of Students") +
-  scale_x_discrete(labels = c("Post-Doctoral\nFellowship","Professor", "Other")) +
-  scale_y_continuous(expand=c(0,0), limits = c(0,60)) +
-  theme_bw() 
+  #scale_x_discrete(labels = c("Post-Doctoral\nFellowship","Professor", "Other")) +
+  scale_y_continuous(expand=c(0,0), limits = c(0,30)) +
+  theme_bw() +
+  geom_text(stat='count', aes(label=..count..), vjust = -0.5, size = 2)+
+    theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+
+
 
 ggsave(paste("CurrentPosition_Bar_",(current.year - filter.year),".jpg", sep = ""))
 
@@ -849,7 +856,7 @@ ggsave(paste("TeachingvsTotalAuthor_",(current.year - filter.year),".jpg", sep =
 app_years = c("Fall, 2013", "Fall, 2014", "Fall, 2015", "Fall, 2016", "Fall, 2017", "Fall, 2018")
 
 app_data %>%
-  filter(Ipeds_Race_Category != 9) %>% #Filter to remove non-citizens and non-permenant residents, Using International status as a proxity, holds up when compared to T32 data on enrolled students
+  #filter(Ipeds_Race_Category != 9) %>% #Filter to remove non-citizens and non-permenant residents, Using International status as a proxity, holds up when compared to T32 data on enrolled students
   ggplot(aes(x = Admit_Term)) +
     geom_bar(data = . %>% filter(App == 1), aes(fill = "App"), width = 0.8, colour = 'black') +
     geom_text(data = . %>% filter(App == 1), stat='count', aes(label=..count..), vjust = -0.5, size = 2) +
@@ -931,6 +938,21 @@ View(participating_faculty_data %>% filter(Participating == 'Yes'))
 #Chem
 View(participating_faculty_data %>% filter(PI == 'Bonneau' | PI == 'Carmona-Fontaine' | PI == 'Ghedin' | PI == 'Gresham' | PI == 'Vogel' | PI == 'Gunsalus') %>% filter(Citz_Stat_Cd !=4) ) 
 
+
+
+```
+
+```{r}
+expanded_data <- left_join(student_data, app_data %>% select(Nyuid,Sex), by = "Nyuid")
+expanded_data %>% filter(is.na(GABIOLPHD)) %>% filter(Most_Recent == 2017) %>% filter(!is.na(`Training_grants/Fellowhips_During_PhD`) | !is.na(Awards_During_PhD)) %>% filter(Sex == 'F')
+expanded_data %>% filter(is.na(GABIOLPHD)) %>% filter(Most_Recent == 2017) %>% filter(!is.na(`Training_grants/Fellowhips_During_PhD`) | !is.na(Awards_During_PhD)) %>% filter(Nyu_Ipeds_Eth_Ld != 'White')
+
+
+
+student_data %>% filter(First_Term >= 2000) %>% filter(!is.na(GABIOLPHD)) %>% filter(!is.na(Employment_upon_graduation))
+
+commit_data %>% filter(Core == 'Yes')
+commit_data %>% filter(Participating == 'Yes')
 
 
 ```
