@@ -955,4 +955,6 @@ commit_data %>% filter(Core == 'Yes')
 commit_data %>% filter(Participating == 'Yes')
 
 
+temp <- student_data %>% filter(!is.na(GABIOLPHD))%>%filter(GABIOLPHD>=2002) %>% filter(GABIOLPHD < 2012) 
+
 ```
