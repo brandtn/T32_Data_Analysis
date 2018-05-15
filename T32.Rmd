@@ -297,12 +297,12 @@ student_data %>%
   ylab("# of Students") +
   xlab("Ethnicity of US Residents") +
   scale_y_continuous(expand=c(0,0), limits=c(0,75)) +
-  scale_x_discrete(labels = c("Asian/Pacific Islander", "Black", "Hispanic", "Two or More Races","White", "Declined to Answer", "International")) +
+  scale_x_discrete(labels = c("Asian/\nPacific\nIslander", "Black", "Hispanic", "Two\nor\nMore\nRaces","White", "Declined\nto\nAnswer", "International")) +
   theme_classic() +
-  theme(axis.ticks = element_line(size=1), axis.title = element_blank(), axis.text = element_blank())
+  theme(axis.ticks = element_line(size=1))
 
 
-ggsave(paste("Ethnicity_Bar_Blank_",(current.year - filter.year),".jpg", sep = ""), dpi =600)
+ggsave(paste("Ethnicity_Bar_",(current.year - filter.year),".pdf", sep = ""), dpi =600)
 
 
 student_data %>%
@@ -423,9 +423,9 @@ student_data %>%
   ylab("Years to PhD") +
   xlab("") +
   theme_bw() +
-  theme(panel.border = element_rect(size=1), axis.ticks = element_line(size=1), axis.ticks.x = element_blank(), axis.title = element_blank(), axis.text = element_blank())
+  theme(panel.border = element_rect(size=1), axis.ticks = element_line(size=1), axis.ticks.y = element_blank())
 
-ggsave(paste("StudentYearstoPhD_Boxplot_",(current.year - filter.year),".jpg", sep = ""), dpi = 600)
+ggsave(paste("StudentYearstoPhD_Boxplot_",(current.year - filter.year),".pdf", sep = ""), dpi = 600)
 
 
   #Number of semesters of teaching
@@ -467,9 +467,10 @@ student_data %>%
   scale_x_continuous(breaks = c(0:4), labels = c(0,1,2,3, "4+")) +
   scale_y_continuous(expand=c(0,0), limits = c(0,60)) +
   theme_bw() + 
+  theme(panel.border = element_rect(size =1 ), axis.ticks = element_line(size=1),panel.grid.major = element_blank(), panel.grid.minor = element_blank())
   theme(panel.border = element_rect(size =1 ), axis.ticks = element_line(size=1),panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.text = element_blank(), axis.title = element_blank())
 
-ggsave(paste("Number_1stAuthorPapers_Blank",(current.year - filter.year),".jpg", sep = ""),dpi = 600)
+ggsave(paste("Number_1stAuthorPapers_",(current.year - filter.year),".pdf", sep = ""),dpi = 600)
 
 #1st author -
 student_data %>%
@@ -552,7 +553,7 @@ temp <- student_data %>%
   #theme(axis.text = element_blank(), axis.title = element_blank())
   #geom_text(stat='count', aes(label=..count..), vjust = -0.5, size = 2)
 
-ggsave(paste("PositionUponGrad_Bar_",(current.year - filter.year),".jpg", sep = ""),plot = temp,  dpi = 600)
+ggsave(paste("PositionUponGrad_Bar_",(current.year - filter.year),".pdf", sep = ""),plot = temp,  dpi = 600)
 
 #CurrentPosition_Bar
 student_data %>%
@@ -585,9 +586,9 @@ student_data %>%
   theme_void() +
   labs( fill = "Position upon gradutation") +
   scale_fill_discrete(labels = c("Post-Doctoral Fellowship","Other", "Unkown")) +
-  theme(legend.title = element_blank(), legend.text = element_blank()) 
+  #theme(legend.title = element_blank(), legend.text = element_blank()) 
 
-ggsave(paste("PositionUponGrad_Blank_",(current.year - filter.year),".jpg", sep = ""), dpi =600)
+ggsave(paste("PositionUponGrad_Blank_",(current.year - filter.year),".pdf", sep = ""), dpi =600)
 
 
 #Postdoc institution
