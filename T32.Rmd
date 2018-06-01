@@ -960,6 +960,21 @@ student_data %>% filter(First_Term >= 2000) %>% filter(!is.na(GABIOLPHD)) %>% fi
 commit_data %>% filter(Core == 'Yes')
 commit_data %>% filter(Participating == 'Yes')
 
+#commit of current facu
+commit_data <- student_data %>% select(Most_Recent, GABIOLPHD, PI, CO_PI, PhD_commitee_member_1, PhD_commitee_member_2, PhD_commitee_member_3, PhD_commitee_member_4_external) %>% filter(Most_Recent == 2017)
+commit_data$GABIOLPHD <- replace_na(commit_data$GABIOLPHD, 2018)
+
+commit_data <- commit_data %>%
+  filter(GABIOLPHD != 2017) %>%
+  filter(!is.na(PI)) %>%
+  select(PI, CO_PI, PhD_commitee_member_1, PhD_commitee_member_2, PhD_commitee_member_3, PhD_commitee_member_4_external) %>%
+  gather(key = 'Position') %>%
+  filter(!is.na(value)) %>%
+  select(value)
+names(commit_data) <- c("PI")
+
+commit_data <- mutate(faculty, Number_Committees = str_count(commit_data, faculty$Last_Name))
+
 
 temp <- student_data %>% filter(!is.na(GABIOLPHD))%>%filter(GABIOLPHD>=2002) %>% filter(GABIOLPHD < 2012) 
 
