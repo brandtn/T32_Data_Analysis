@@ -123,10 +123,15 @@ app_data$Admit_Term <- sapply(app_data$Admit_Term, convertdate_year)
 app_data$Admit_Term <- as.factor(app_data$Admit_Term)
 app_data$Ipeds_Race_Category <- as.factor(app_data$Ipeds_Race_Category)
 
-
-
 glimpse(app_data)
 
+#Read in GAP Data
+gpa_data <- gs_read(ss = gs_title("BIOL_PHD_GPAs"))
+
+gpa_data$Admit_Term <- sapply(gpa_data$Admit_Term, convertdate_year)
+gpa_data$Ipeds_Race_Category <- as.factor(gpa_data$Ipeds_Race_Category)
+
+glimpse(gpa_data)
 ```
 
 
@@ -398,6 +403,52 @@ student_data %>%
 
 #ggsave(paste("QuantGRE_Old_Bar_",(current.year - filter.year),".jpg", sep = ""))
 
+#GRE by year
+student_data %>%
+  filter(First_Term >= 2013) %>%
+  filter(!is.na(EQ)) %>%
+  filter(!is.na(EV)) %>%
+  mutate(First_Term = as.integer(First_Term)) %>%
+  group_by(First_Term) %>%
+  summarize(med.EV = median(EV), med.EQ = median(EQ)) %>%
+  ggplot() +
+  geom_point(aes(x=First_Term, y=med.EV), color = 'red') +
+  geom_line(aes(x=First_Term, y=med.EV), color = 'red') +
+  annotate("text", x = 2014, y = 155.8, color = 'red', label = "Verbal") +
+  geom_point(aes(x=First_Term, y=med.EQ), color = 'blue') +
+  geom_line(aes(x=First_Term, y=med.EQ), color = 'blue') +
+  annotate("text", x = 2014, y = 162.2, color = 'blue', label = "Quantiative") +
+  ylab("GRE Score") +
+  xlab("Year") +
+  labs(title = "Enrolled PhD Student's GRE Score (Median)") +
+  scale_y_continuous(limits = c(150,165)) +
+  theme_classic() +
+  theme(plot.title = element_text(hjust = 0.5))
+
+ggsave("GREvYears.jpg")
+ggsave("GREvYears.pdf")
+
+#GPA by year
+gpa_data %>%
+  filter(Admit_Term >= 2013) %>%
+  filter(Enroll == 1) %>%
+  filter(!is.na(Convert_Gpa)) %>%
+  mutate(Admit_Term = as.integer(Admit_Term)) %>%
+  group_by(Admit_Term) %>%
+  summarize(med.GPA = median(Convert_Gpa)) %>%
+  ggplot() +
+  geom_point(aes(x=Admit_Term, y=med.GPA), color = 'blue') +
+  geom_line(aes(x=Admit_Term, y=med.GPA), color = 'blue') +
+  ylab("GPA") +
+  xlab("Year") +
+  labs(title = "Enrolled PhD Student's GPA (Median)") +
+  scale_y_continuous(limits = c(3,4)) +
+  theme_classic() +
+  theme(plot.title = element_text(hjust = 0.5))
+
+ggsave("GPAvYears.jpg")
+ggsave("GPAvYears.pdf")
+
 
 #PhD experience (histograms or boxplot with points overlayed)
   #Time to degree
@@ -426,6 +477,27 @@ student_data %>%
   theme(panel.border = element_rect(size=1), axis.ticks = element_line(size=1), axis.ticks.y = element_blank())
 
 ggsave(paste("StudentYearstoPhD_Boxplot_",(current.year - filter.year),".pdf", sep = ""), dpi = 600)
+
+
+#Years to Grad by Graduating Class
+student_data %>%
+  filter(GABIOLPHD >= 2013) %>%
+  mutate(GABIOLPHD = as.integer(GABIOLPHD)) %>%
+  group_by(GABIOLPHD) %>%
+  summarize(median.Years = median(Years)) %>%
+  ggplot() +
+  geom_point(aes(x=GABIOLPHD, y=median.Years), color = 'blue') +
+  geom_line(aes(x=GABIOLPHD, y=median.Years), color = 'blue') +
+  ylab("Years") +
+  xlab("Graduating Year") +
+  labs(title = "Time to PhD (Median)") +
+  scale_y_continuous(limits = c(5,7)) +
+  theme_classic() +
+  theme(plot.title = element_text(hjust = 0.5))
+
+ggsave("YearvGradTime.jpg")
+ggsave("YearvGradTime.pdf")
+
 
 
   #Number of semesters of teaching
@@ -571,9 +643,6 @@ student_data %>%
   geom_text(stat='count', aes(label=..count..), vjust = -0.5, size = 2)+
     theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
-
-
-
 ggsave(paste("CurrentPosition_Bar_",(current.year - filter.year),".jpg", sep = ""))
 
 
@@ -585,10 +654,29 @@ student_data %>%
   coord_polar(theta = "y", start=0) +
   theme_void() +
   labs( fill = "Position upon gradutation") +
-  scale_fill_discrete(labels = c("Post-Doctoral Fellowship","Other", "Unkown")) +
+  scale_fill_discrete(labels = c("Post-Doctoral Fellowship","Other", "Unkown")) 
   #theme(legend.title = element_blank(), legend.text = element_blank()) 
 
 ggsave(paste("PositionUponGrad_Blank_",(current.year - filter.year),".pdf", sep = ""), dpi =600)
+
+
+#Current Career Pie Chart
+student_data %>%
+  #filter(GABIOLPHD >= filter.year) %>%
+  filter(!is.na(GABIOLPHD)) %>%
+  filter(!is.na(Alt_position_code)) %>%
+  ggplot(aes(x = "", fill = (Alt_position_code))) +
+  geom_bar(width = 1 ) +
+  coord_polar(theta = "y", start=0) +
+  theme_void() +
+  labs(title = "Current Career Choices of Alimni", fill = "Career Field") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+  #scale_fill_discrete(labels = c("Post-Doctoral Fellowship","Other", "Unkown")) 
+  #theme(legend.title = element_blank(), legend.text = element_blank()) 
+
+ggsave("CurrentPosition.pdf")
+ggsave("CurrentPosition.jpg")
 
 
 #Postdoc institution
@@ -862,7 +950,9 @@ ggsave(paste("TeachingvsTotalAuthor_",(current.year - filter.year),".jpg", sep =
 app_years = c("Fall, 2013", "Fall, 2014", "Fall, 2015", "Fall, 2016", "Fall, 2017", "Fall, 2018")
 
 app_data %>%
-  #filter(Ipeds_Race_Category != 9) %>% #Filter to remove non-citizens and non-permenant residents, Using International status as a proxity, holds up when compared to T32 data on enrolled students
+  filter(Ipeds_Race_Category == 9) %>% #Filter to remove non-citizens and non-permenant residents, Using International status as a proxity, holds up when compared to T32 data on enrolled students
+   #filter(Ipeds_Race_Category != 1) %>%
+  #filter(Ipeds_Race_Category != 4) %>%
   ggplot(aes(x = Admit_Term)) +
     geom_bar(data = . %>% filter(App == 1), aes(fill = "App"), width = 0.8, colour = 'black') +
     geom_text(data = . %>% filter(App == 1), stat='count', aes(label=..count..), vjust = -0.5, size = 2) +
